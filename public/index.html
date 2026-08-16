@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>サイドノート資料作成</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sidenote-pdf.pages.dev/">
+<meta property="og:title" content="サイドノート資料作成">
+<meta property="og:description" content="テキストやスクショの資料に、余白へサイドノートを書き込んで整理するアプリです。ブラウザ内で完結し、.json保存で続きから再開できます。">
+<meta property="og:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="サイドノート資料作成">
+<meta name="twitter:description" content="テキストやスクショの資料に、余白へサイドノートを書き込んで整理するアプリです。ブラウザ内で完結し、.json保存で続きから再開できます。">
+<meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
+<!-- ?v=NUM はキャッシュ対策。style.css/app.js/zip.jsを直す度に、直したファイルの番号だけ+1する。 -->
+<link rel="stylesheet" href="style.css?v=16">
+</head>
+<body>
+
+<div class="app-frame">
+<h1 class="app-title">サイドノート資料作成</h1>
+<div class="hint">
+※テキストやスクショの資料にサイドノートを置くアプリです<br>
+※サイドノートを付けたい一文・画像を選択すると入力欄が表示されます<br>
+※サイドノートで整理した後は、mdファイルやPDFで書き出すことができます<br>
+※テキストの体裁は、Ctrl＋B、Ctrl＋U、Ctrl＋Zに対応しています。<br>
+※スクショ・画像貼り付けは、Ctrl＋C、Ctrl＋Vも対応しています。<br>
+※スクショの出典（Webサイト・Googleドライブ等）はサイドノートに書いて記録できます
+</div>
+</div>
+
+<!-- ツールバーは.app-frameの外（bodyの直下）に出す。position:stickyは自分の親の高さまでしか
+     効かないため、.app-frame（タイトル＋説明文のみ）の中に入れたままだと、長い文章をスクロールした
+     時に親ごと画面外へ流れてツールバーが隠れてしまう。bodyの直下に出すことで文書の最後までスクロール
+     しても常に画面上部に固定され続ける。 -->
+<div class="toolbar-sticky">
+<div class="toolbar">
+  <button id="settingsBtn" type="button">設定</button>
+  <button id="helpBtn" type="button">各種ボタンのヘルプ</button>
+  <label class="filebtn2" title="保存した.jsonファイルを開く">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/></svg>
+    開く（.json）
+    <input id="loadInput" type="file" accept="application/json,.json">
+  </label>
+  <button id="saveBtn" type="button" title="今の内容を.jsonファイルとして保存">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/></svg>
+    保存（.json）
+  </button>
+  <button id="saveMdBtn" type="button" title="MkDocs公開・Obsidian用にMarkdownで書き出す（画像はimages/フォルダにまとめてzipで保存）">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M14 3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/><path fill-rule="evenodd" d="M9.146 8.146a.5.5 0 0 1 .708 0L11.5 9.793l1.646-1.647a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 0-.708"/><path fill-rule="evenodd" d="M11.5 5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 .5-.5"/><path d="M3.56 11V7.01h.056l1.428 3.239h.774l1.42-3.24h.056V11h1.073V5.001h-1.2l-1.71 3.894h-.039l-1.71-3.894H2.5V11z"/></svg>
+    保存（.md）
+  </button>
+  <button id="savePdfBtn" type="button" title="A4のPDFとして保存（印刷ダイアログが開くので、保存先で「PDFに保存」を選んでください）">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM1.6 11.85H0v3.999h.791v-1.342h.803q.43 0 .732-.173.305-.175.463-.474a1.4 1.4 0 0 0 .161-.677q0-.375-.158-.677a1.2 1.2 0 0 0-.46-.477q-.3-.18-.732-.179m.545 1.333a.8.8 0 0 1-.085.38.57.57 0 0 1-.238.241.8.8 0 0 1-.375.082H.788V12.48h.66q.327 0 .512.181.185.183.185.522m1.217-1.333v3.999h1.46q.602 0 .998-.237a1.45 1.45 0 0 0 .595-.689q.196-.45.196-1.084 0-.63-.196-1.075a1.43 1.43 0 0 0-.589-.68q-.396-.234-1.005-.234zm.791.645h.563q.371 0 .609.152a.9.9 0 0 1 .354.454q.118.302.118.753a2.3 2.3 0 0 1-.068.592 1.1 1.1 0 0 1-.196.422.8.8 0 0 1-.334.252 1.3 1.3 0 0 1-.483.082h-.563zm3.743 1.763v1.591h-.79V11.85h2.548v.653H7.896v1.117h1.606v.638z"/></svg>
+    保存（.pdf）
+  </button>
+</div>
+<div class="toolbar">
+  <button id="resumeApply" type="button" disabled>続きから再開</button>
+  <button id="resumeDiscard" type="button">新しい作業</button>
+  <button id="indentDec" type="button" title="現在の行のインデントを減らす">◀ インデント</button>
+  <button id="indentInc" type="button" title="現在の行のインデントを増やす">インデント ▶</button>
+  <button id="hangingBtn" type="button">ぶら下げ</button>
+  <label class="filebtn2" title="スクショ画像を挿入（カーソル位置の段落の直後に追加されます）">
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/></svg>
+    スクショ
+    <input id="imgInput" type="file" accept="image/*" multiple>
+  </label>
+  <button id="clearBtn" type="button" title="本文・ノート・画像を消す（タイトルは残す）">文書をクリア</button>
+</div>
+</div>
+
+<div class="title-row">
+  <input id="titleInput" type="text" placeholder="タイトル（例：資料A、〇〇案件メモ）">
+</div>
+<div id="saveStatus"></div>
+
+<div class="dropdown-panel" id="settingsPanel" hidden>
+  <div class="settings-row">
+    <span class="settings-dot" data-color="black"></span>
+    <input id="nameBlack" type="text" maxlength="12" placeholder="自分">
+  </div>
+  <div class="settings-row">
+    <span class="settings-dot" data-color="blue"></span>
+    <input id="nameBlue" type="text" maxlength="12" placeholder="共有相手">
+  </div>
+  <div class="settings-row">
+    <span class="settings-dot" data-color="red"></span>
+    <span class="settings-fixed">重要（固定・名前は付けられません）</span>
+  </div>
+  <label class="settings-toggle">
+    <input type="checkbox" id="showNamesToggle">
+    サイドノートに名前（自分／共有相手／重要）を表示する
+  </label>
+</div>
+
+<div class="dropdown-panel" id="helpPanel" hidden>
+  <ul>
+    <li>インデント系ボタンは、カーソルが置かれている行（段落）に適用されます。範囲選択は不要です。</li>
+    <li>「ぶら下げ」は、カーソルが置かれている行の2行目以降を字下げします（ぶら下げインデント）。</li>
+    <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像も内包されます）。</li>
+    <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
+    <li>「保存（.pdf）」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
+  </ul>
+</div>
+
+<div class="doc-wrap">
+  <div class="doc-left">
+    <div id="doc" contenteditable="true" placeholder="ここに分析したい文書の本文を貼り付けてください"></div>
+  </div>
+  <div class="doc-right" id="docRight"></div>
+</div>
+
+<!-- 印刷（PDF保存）専用の版面。画面には出さず、印刷時だけ#printDocのみを表示する。
+     サイドノートは画面と同じ絶対座標方式ではなく、段落の直後にasideをfloatさせるJupyter Book方式
+     （mdの書き出しと同じ考え方）にする。ページをまたぐ絶対座標はPDF化に向かないため。 -->
+<div id="printDoc"></div>
+
+<div class="note-popover" id="notePopover" hidden>
+  <div class="color-picker" id="colorPicker">
+    <button type="button" class="color-swatch" data-color="black">自分</button>
+    <button type="button" class="color-swatch" data-color="blue">共有相手</button>
+    <button type="button" class="color-swatch" data-color="red">重要</button>
+  </div>
+  <textarea id="notePopoverInput" rows="3" placeholder="このコメントの内容を入力"></textarea>
+  <div class="phint">選択して Ctrl+B（太字）／ Ctrl+U（下線）、または **太字** ／ &lt;u&gt;下線&lt;/u&gt; と直接入力</div>
+  <div class="row">
+    <button id="notePopoverAdd" type="button" class="primary">追加</button>
+    <button id="notePopoverCancel" type="button">キャンセル</button>
+  </div>
+</div>
+
+<script src="zip.js?v=1"></script>
+<script src="app.js?v=23"></script>
+</body>
+</html>
