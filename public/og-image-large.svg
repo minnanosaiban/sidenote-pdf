@@ -5,5 +5,5 @@
         font-weight="400" font-size="100" fill="#ffffff">サイドノート資料作成</text>
   <text x="600" y="380" text-anchor="middle" dominant-baseline="central"
         font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif"
-        font-weight="400" font-size="32" fill="#cfcfcf">テキストやスクショにサイドノートを置いて整理するアプリです</text>
+        font-weight="400" font-size="32" fill="#cfcfcf">文章やスクショにサイドノートを書き込んでPDFにできるアプリ</text>
 </svg>

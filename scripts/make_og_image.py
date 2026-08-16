@@ -31,7 +31,7 @@ def make_large():
     w, h = 1200, 630
     pad_x_title, pad_x_sub, gap = 90, 90, 40
     title = "サイドノート資料作成"
-    subtitle = "テキストやスクショにサイドノートを置いて整理するアプリです"
+    subtitle = "文章やスクショにサイドノートを書き込んでPDFにできるアプリ"
 
     scratch = ImageDraw.Draw(Image.new("RGB", (10, 10)))
     title_font, tb, title_size = fit(scratch, title, w - 2 * pad_x_title, 200)
