@@ -796,7 +796,8 @@ function showParaHover(para) {
   hoveredPara = para;
   const pRect = para.getBoundingClientRect();
   const hostRect = docLeftEl.getBoundingClientRect();
-  paraHoverEl.style.top = `${pRect.top - hostRect.top}px`;
+  // -4pxはCSSのpadding分の補正（ボタン自体の見た目の位置が段落の先頭行と揃うようにする）。
+  paraHoverEl.style.top = `${pRect.top - hostRect.top - 4}px`;
   paraHoverEl.hidden = false;
 }
 function hideParaHover() {
@@ -811,7 +812,7 @@ function hideParaHover() {
 let paraHoverHideTimer = null;
 function scheduleParaHoverHide() {
   clearTimeout(paraHoverHideTimer);
-  paraHoverHideTimer = setTimeout(hideParaHover, 250);
+  paraHoverHideTimer = setTimeout(hideParaHover, 400);
 }
 function cancelParaHoverHide() {
   clearTimeout(paraHoverHideTimer);

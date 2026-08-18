@@ -132,21 +132,23 @@ body {
 
 /* ── 段落ホバー時の「＋画像」「×削除」（JIMDO的なブロック単位の操作） ──
    #docの外側の要素なので、位置は.doc-left基準の絶対座標（JSがtopだけ合わせる）。
-   横位置は.doc-rightとの間の余白(28px)に収まるよう、.doc-leftのすぐ右に固定で置く。 */
+   横位置は.doc-rightとの間の余白(28px)に収まるよう、.doc-leftのすぐ右に固定で置く。
+   paddingを付けて当たり判定を見た目より広めに取り、段落からここまでマウスを動かす途中で
+   多少ズレても入り直せるようにする（2026-08-19、クリックしづらいとの指摘を受けて調整）。 */
 .para-hover {
-  position: absolute; left: 100%; margin-left: 6px; top: 0;
+  position: absolute; left: 100%; margin-left: 4px; top: 0; padding: 4px;
   display: flex; flex-direction: column; gap: 4px; z-index: 15;
 }
 /* [hidden]とdisplay:flexが同じ詳細度になり、後勝ちでflexが表示してしまうのを防ぐ
    （[hidden]側の詳細度を明示的に上げて、hidden属性がある間は必ず隠す）。 */
 .para-hover[hidden] { display: none; }
 .para-hover-btn {
-  width: 22px; height: 22px; padding: 0; border: none; border-radius: 6px;
+  width: 28px; height: 28px; padding: 0; border: none; border-radius: 7px;
   background: #eef0f3; color: #31333f; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .para-hover-btn:hover { background: #e2e4e9; color: #ff4b4b; }
-.para-hover-btn .icon { width: 12px; height: 12px; }
+.para-hover-btn .icon { width: 14px; height: 14px; }
 .para-hover input[type="file"] { display: none; }
 
 /* ── 画像段落（スクショ） ──
@@ -275,16 +277,22 @@ body.print-active .print-title { font-size: 14pt; font-weight: 700; margin: 0 0 
    同じ幅のfloat:leftになり横に並ぶ余地が無いため、注釈の直後で必ず改行されたように見える
    不具合になっていた。段落を分割しない今の方式なら、この問題は原理的に起きない。
    clear:bothは主に画像(.print-img、floatのまま)の直後に段落が来た時のため（画像に横並びで
-   食い込まないよう、その下まで進んでから始める）。 */
+   食い込まないよう、その下まで進んでから始める）。
+   marginは持たせない：画面側の#doc .para（margin:0、余白は空行の段落の高さだけで表現する）と
+   段落間の余白の作り方を揃えるため。marginを足すと、貼り付け元の改行がそのまま複数の.paraに
+   割れているケース（コピー元で1行ごとに改行が入っていた等）で、段落の数だけ余白が積み重なって
+   画面よりPDFの方が段落間が広く見える不具合になっていた。 */
 body.print-active .print-para {
-  width: 115mm; clear: both; margin: 0 0 10pt;
+  width: 115mm; clear: both; margin: 0;
   overflow-wrap: break-word;
 }
-/* floatの子（.print-aside）は既定では親の高さに含まれない（floatの外に高さが漏れる）。
-   次の段落がそこへ食い込まないよう、clearfixで段落自身の高さに含める。overflow:hiddenでの
-   クリアフィックスは、逃がした注釈（マイナスマージンで段落の外に出ている）ごと切り取って
-   しまうため使えない。 */
-body.print-active .print-para::after { content: ""; display: table; clear: both; }
+/* あえてclearfix（floatの子=.print-asideの高さを親に含める処理）は入れない。入れると、注釈が
+   その段落の本文より長い時、次の段落がその注釈の下まで律儀に空けて始まってしまい、段落ごとの
+   余白が不揃いに広がって見える（2026-08-19に報告あり）。本文（幅115mm）と注釈（幅48mm、外側の
+   余白へマイナスマージンで逃げている）は横位置が重ならないため、本文同士がぶつかることは無い。
+   残るリスクは「ある段落の長い注釈がまだ表示され続けている間に、次の段落の注釈がごく早い位置
+   （その段落の先頭付近）に来る」場合に注釈同士が重なる可能性があるが、これは比較的まれなケース
+   として許容する（滅多に起きない不具合より、常に発生する不要な余白の解消を優先）。 */
 body.print-active .print-img { width: 115mm; max-width: 115mm; float: left; clear: both; margin: 0 0 10pt; display: block; }
 body.print-active .print-aside {
   width: 48mm; float: right; clear: right; margin: 0 0 8pt; font-size: 8.5pt; line-height: 1.6; color: #333;
