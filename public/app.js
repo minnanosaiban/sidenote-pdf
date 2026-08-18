@@ -114,6 +114,9 @@ function updatePlaceholder() {
 doc.addEventListener("input", () => { updatePlaceholder(); renumberAndLayout(); autoSaveDebounced(); });
 resetDoc();
 updatePlaceholder();
+// 初回読み込み時もrenumberAndLayout()を呼んでおく（呼ばないとlayoutSidenotes()が一度も走らず、
+// 注釈0件時のグレーアウトの見本カードが最初の入力までサイドに出ない）。
+renumberAndLayout();
 
 // ---- 保存・読み込み（.jsonファイル） ----
 // 長文の作業を前提に、途中まで進めた内容をファイルとして残せるようにする。
