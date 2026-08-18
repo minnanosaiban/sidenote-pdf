@@ -639,6 +639,19 @@ function addTextNote(range, text, color) {
       paraEl.insertBefore(zwsp, paraEl.firstChild);
     }
   }
+  // 段落の一番末尾（直後に文字が1つも無い位置）まで選択した場合も、上と対称の同じ不具合が起きる
+  // （選択範囲の最後の文字にかかった注釈が.paraの外＝直後の兄弟へ押し出され、.paraはdiv＝ブロック要素
+  // なので見た目上そこで改行されたようになる）。回避策も対称：末尾にゼロ幅スペースを仮に足しておく。
+  let zwspEnd = null;
+  if (paraEl) {
+    const probeEnd = document.createRange();
+    probeEnd.setStart(range.endContainer, range.endOffset);
+    probeEnd.setEnd(paraEl, paraEl.childNodes.length);
+    if (probeEnd.toString().length === 0) {
+      zwspEnd = document.createTextNode("​");
+      paraEl.appendChild(zwspEnd);
+    }
+  }
 
   const sel = window.getSelection();
   sel.removeAllRanges();
@@ -648,6 +661,7 @@ function addTextNote(range, text, color) {
   // ※execCommandの戻り値は信用せず、実際にDOMへ挿入されたかで成否判定する（二重挿入バグの教訓）。
   document.execCommand && document.execCommand("insertHTML", false, html);
   if (zwsp) zwsp.remove();
+  if (zwspEnd) zwspEnd.remove();
   if (!doc.querySelector(`[data-anchor-id="${anchorId}"]`)) {
     // 本当に失敗した場合のみのフォールバック（この経路のみundo対象外）
     const anchor = document.createElement("span");
