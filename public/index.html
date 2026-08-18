@@ -17,8 +17,8 @@
 <meta name="twitter:title" content="サイドノート資料作成">
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるアプリ">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
-<!-- ?v=NUM はキャッシュ対策。style.css/app.js/zip.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=17">
+<!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
+<link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
 
@@ -27,8 +27,8 @@
 <div class="hint">
 ※テキストやスクショの資料にサイドノートを置くアプリです<br>
 ※サイドノートを付けたい一文・画像を選択すると入力欄が表示されます<br>
-※サイドノートで整理した後は、mdファイルやPDFで書き出すことができます<br>
-※テキストの体裁は、Ctrl＋B、Ctrl＋U、Ctrl＋Zに対応しています。<br>
+※サイドノートで整理した後は、PDFで書き出すことができます<br>
+※段落にカーソルを乗せると、画像の挿入・段落の削除ができます（右側にアイコンが表示されます）<br>
 ※スクショ・画像貼り付けは、Ctrl＋C、Ctrl＋Vも対応しています。<br>
 ※スクショの出典（Webサイト・Googleドライブ等）はサイドノートに書いて記録できます
 </div>
@@ -51,10 +51,6 @@
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/></svg>
     保存（.json）
   </button>
-  <button id="saveMdBtn" type="button" title="MkDocs公開・Obsidian用にMarkdownで書き出す（画像はimages/フォルダにまとめてzipで保存）">
-    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M14 3a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/><path fill-rule="evenodd" d="M9.146 8.146a.5.5 0 0 1 .708 0L11.5 9.793l1.646-1.647a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 0-.708"/><path fill-rule="evenodd" d="M11.5 5a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 1 .5-.5"/><path d="M3.56 11V7.01h.056l1.428 3.239h.774l1.42-3.24h.056V11h1.073V5.001h-1.2l-1.71 3.894h-.039l-1.71-3.894H2.5V11z"/></svg>
-    保存（.md）
-  </button>
   <button id="savePdfBtn" type="button" title="A4のPDFとして保存（印刷ダイアログが開くので、保存先で「PDFに保存」を選んでください）">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM1.6 11.85H0v3.999h.791v-1.342h.803q.43 0 .732-.173.305-.175.463-.474a1.4 1.4 0 0 0 .161-.677q0-.375-.158-.677a1.2 1.2 0 0 0-.46-.477q-.3-.18-.732-.179m.545 1.333a.8.8 0 0 1-.085.38.57.57 0 0 1-.238.241.8.8 0 0 1-.375.082H.788V12.48h.66q.327 0 .512.181.185.183.185.522m1.217-1.333v3.999h1.46q.602 0 .998-.237a1.45 1.45 0 0 0 .595-.689q.196-.45.196-1.084 0-.63-.196-1.075a1.43 1.43 0 0 0-.589-.68q-.396-.234-1.005-.234zm.791.645h.563q.371 0 .609.152a.9.9 0 0 1 .354.454q.118.302.118.753a2.3 2.3 0 0 1-.068.592 1.1 1.1 0 0 1-.196.422.8.8 0 0 1-.334.252 1.3 1.3 0 0 1-.483.082h-.563zm3.743 1.763v1.591h-.79V11.85h2.548v.653H7.896v1.117h1.606v.638z"/></svg>
     保存（.pdf）
@@ -63,15 +59,6 @@
 <div class="toolbar">
   <button id="resumeApply" type="button" disabled>続きから再開</button>
   <button id="resumeDiscard" type="button">新しい作業</button>
-  <button id="indentDec" type="button" title="現在の行のインデントを減らす">◀ インデント</button>
-  <button id="indentInc" type="button" title="現在の行のインデントを増やす">インデント ▶</button>
-  <button id="hangingBtn" type="button">ぶら下げ</button>
-  <label class="filebtn2" title="スクショ画像を挿入（カーソル位置の段落の直後に追加されます）">
-    <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/></svg>
-    スクショ
-    <input id="imgInput" type="file" accept="image/*" multiple>
-  </label>
-  <button id="clearBtn" type="button" title="本文・ノート・画像を消す（タイトルは残す）">文書をクリア</button>
 </div>
 </div>
 
@@ -101,10 +88,10 @@
 
 <div class="dropdown-panel" id="helpPanel" hidden>
   <ul>
-    <li>インデント系ボタンは、カーソルが置かれている行（段落）に適用されます。範囲選択は不要です。</li>
-    <li>「ぶら下げ」は、カーソルが置かれている行の2行目以降を字下げします（ぶら下げインデント）。</li>
+    <li>段落にカーソルを乗せると、右側に「＋画像」「×削除」のアイコンが出ます。「＋画像」はその段落の直後に画像を挿入、「×削除」はその段落（画像の場合はその1枚）だけを消します。</li>
     <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像も内包されます）。</li>
     <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
+    <li>「新しい作業」は本文・ノート・画像・タイトルを全て消して、別の案件を新規に始めます。</li>
     <li>「保存（.pdf）」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
   </ul>
 </div>
@@ -112,7 +99,22 @@
 <div class="doc-wrap">
   <div class="doc-left">
     <div class="doc-label">本文（テキスト・スクショ）</div>
-    <div id="doc" contenteditable="true" placeholder="ここに分析したい文書の本文を貼り付けてください"></div>
+    <div class="doc-stack">
+      <div id="doc" contenteditable="true"></div>
+      <div id="docSample" aria-hidden="true">（例）本件契約の第◯条について、相手方から異議が示されました。</div>
+    </div>
+    <!-- 段落ホバー時に出す「＋画像」「×削除」。#docの外側に1つだけ置き、位置はJSで合わせる
+         （#docの中に直接置くと、保存(.json)やPDF印刷が本文の一部として拾ってしまうため）。
+         .doc-left基準の絶対座標で置くため、.doc-leftの内側（.doc-stackの兄弟）に置く。 -->
+    <div class="para-hover" id="paraHover" hidden>
+      <label class="para-hover-btn" title="この段落の直後に画像を挿入">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/></svg>
+        <input type="file" id="paraHoverFile" accept="image/*" multiple hidden>
+      </label>
+      <button type="button" class="para-hover-btn para-hover-del" id="paraHoverDel" title="この段落を削除">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
+      </button>
+    </div>
   </div>
   <div class="doc-right" id="docRight"></div>
 </div>
@@ -136,7 +138,6 @@
   </div>
 </div>
 
-<script src="zip.js?v=1"></script>
-<script src="app.js?v=23"></script>
+<script src="app.js?v=25"></script>
 </body>
 </html>

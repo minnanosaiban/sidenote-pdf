@@ -24,7 +24,7 @@ body {
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
 .toolbar + .toolbar { margin-top: 0; }
 /* ボタン・ファイル選択ラベルは高さ・最小幅を揃えて、ラベルの長さに関わらず整列させる
-   （幅は最も長い「ぶら下げインデント」に合わせたmin-widthで、短い文字は中央寄せにする）。 */
+   （短い文字はmin-widthの中で中央寄せにする）。 */
 /* 罫線ではなくグレーの塗りつぶしで見せる（枠線の主張を抑える方針）。 */
 .toolbar button, .toolbar .filebtn2 {
   font-size: 13px; height: 34px; min-width: 108px; padding: 0 12px; border-radius: 6px; border: none;
@@ -94,7 +94,7 @@ body {
 .help-icon:hover + .help-tip, .help-icon:focus + .help-tip { opacity: 1; visibility: visible; }
 
 .doc-wrap { display: flex; gap: 28px; max-width: 900px; margin: 0 auto; }
-.doc-left { flex: 1 1 auto; min-width: 0; }
+.doc-left { flex: 1 1 auto; min-width: 0; position: relative; }   /* 段落ホバー時のアイコン(.para-hover)の位置基準 */
 /* テキスト・スクショどちらも入れられる欄だと一目で分かるよう、枠の上に小さく添える
    （枠が空の間だけ出るplaceholderと違い、入力後もずっと表示され続けるラベル）。 */
 .doc-label { font-size: 12.5px; color: #8a8f98; margin: 0 0 6px; }
@@ -102,11 +102,22 @@ body {
   width: 260px; flex: none; position: relative;   /* 区切りは罫線ではなくgap（余白）だけに任せる */
 }
 
+/* #docと見本(#docSample)を同じマス目に重ねて表示する（絶対座標の手計算をせずに済むCSS Gridの技）。 */
+.doc-stack { display: grid; }
+.doc-stack > * { grid-area: 1 / 1; }
+
 #doc {
   border: 1px solid #e2e4e9; border-radius: 8px; padding: 20px;
   font-size: 15px; line-height: 1.9; min-height: 300px;
 }
 #doc:focus { outline: none; border-color: #ff4b4b; }
+/* 本文が空の間だけ、それらしい例文をグレーで重ねて見せる（#docのJS側で.emptyを付け外しする）。
+   クリックは下の#docへ素通しし、実際に何か入力・貼り付けした瞬間にJS側で消える。 */
+#docSample {
+  display: none; padding: 20px; font-size: 15px; line-height: 1.9;
+  color: #b7bac2; pointer-events: none;
+}
+#doc.empty ~ #docSample { display: block; }
 .para { margin: 0; }   /* テキスト段落＝1行。インデント／ぶら下げインデントはこの要素にpadding-left/text-indentで適用する */
 /* 本文の1行を常時37字以内にする。CJKフォントは全角1文字がほぼ1em幅で設計されているため、
    max-width:37emで近似する（画像ブロックは対象外＝.para-imageを除外）。
@@ -120,6 +131,25 @@ body {
   user-select: none;
 }
 
+/* ── 段落ホバー時の「＋画像」「×削除」（JIMDO的なブロック単位の操作） ──
+   #docの外側の要素なので、位置は.doc-left基準の絶対座標（JSがtopだけ合わせる）。
+   横位置は.doc-rightとの間の余白(28px)に収まるよう、.doc-leftのすぐ右に固定で置く。 */
+.para-hover {
+  position: absolute; left: 100%; margin-left: 6px; top: 0;
+  display: flex; flex-direction: column; gap: 4px; z-index: 15;
+}
+/* [hidden]とdisplay:flexが同じ詳細度になり、後勝ちでflexが表示してしまうのを防ぐ
+   （[hidden]側の詳細度を明示的に上げて、hidden属性がある間は必ず隠す）。 */
+.para-hover[hidden] { display: none; }
+.para-hover-btn {
+  width: 22px; height: 22px; padding: 0; border: none; border-radius: 6px;
+  background: #eef0f3; color: #31333f; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.para-hover-btn:hover { background: #e2e4e9; color: #ff4b4b; }
+.para-hover-btn .icon { width: 12px; height: 12px; }
+.para-hover input[type="file"] { display: none; }
+
 /* ── 画像段落（スクショ） ──
    罫線ではなく淡い背景で「1つのブロック」を示す（罫線を多用しない、という見た目の方針を画像でも踏襲）。 */
 .para-image { margin: 16px 0; padding: 12px; border-radius: 10px; background: #f7f7f9; }
@@ -131,6 +161,14 @@ body {
   background: #eef0f3; color: #31333f; cursor: pointer;
 }
 .para-image-note-btn:hover { background: #e2e4e9; color: #ff4b4b; }
+/* 削除ボタンは丸アイコンにして「＋ノート」（テキストボタン）と見た目で区別する。 */
+.para-image-del-btn {
+  width: 26px; height: 26px; padding: 0; border: none; border-radius: 50%;
+  background: #eef0f3; color: #31333f; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.para-image-del-btn:hover { background: #e2e4e9; color: #ff4b4b; }
+.para-image-del-btn .icon { width: 12px; height: 12px; }
 /* コメントが無い間は高さゼロ（min-heightを持たせない）で余白を作らない。バッジが付いたら:not(:empty)で
    余白を確保する（画像との間の隙間）。 */
 .para-image-notes:not(:empty) { display: flex; gap: 6px; margin-bottom: 4px; }
@@ -156,6 +194,10 @@ body {
   color: #8a8f98; cursor: pointer;
 }
 .sidenote-reply-btn:hover { color: #ff4b4b; }
+
+/* 注釈が1件も無い間だけ出す、使い方のグレーアウトの見本（実際のノートを1件付けると消える）。 */
+.sidenote-sample { color: #b7bac2; pointer-events: none; }
+.sidenote-sample .sidenote-num { color: #c7cad0; }
 
 .note-popover {
   /* 本文の上に浮くパネルなので、境界は枠線でなく影だけで示す（存在に気づけるよう影は残す）。 */
@@ -191,6 +233,8 @@ body {
 @media (max-width: 860px) {
   .doc-wrap { flex-direction: column; }
   .doc-right { display: none; }   /* スマホ幅ではサイドノート欄自体を非表示にする（横並びの余白が無いため） */
+  /* .doc-rightとの間の余白が無くなる幅なので、.para-hoverは外側ではなく#docの内側右端に置く。 */
+  .para-hover { left: auto; right: 4px; margin-left: 0; }
 }
 
 /* ── 印刷（PDF保存）専用の版面 ──

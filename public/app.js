@@ -4,19 +4,21 @@
 const ICON_X =
   '<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">' +
   '<path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>';
+const ICON_IMAGE =
+  '<svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">' +
+  '<path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>' +
+  '<path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/></svg>';
 
 const doc = document.getElementById("doc");
+const docLeftEl = document.querySelector(".doc-left");
 const docRightEl = document.getElementById("docRight");
-const clearBtn = document.getElementById("clearBtn");
 const popoverEl = document.getElementById("notePopover");
 const popoverInput = document.getElementById("notePopoverInput");
 const titleInput = document.getElementById("titleInput");
 const saveBtn = document.getElementById("saveBtn");
-const saveMdBtn = document.getElementById("saveMdBtn");
 const savePdfBtn = document.getElementById("savePdfBtn");
 const printDocEl = document.getElementById("printDoc");
 const loadInput = document.getElementById("loadInput");
-const imgInput = document.getElementById("imgInput");
 const saveStatusEl = document.getElementById("saveStatus");
 const resumeApplyBtn = document.getElementById("resumeApply");
 const resumeDiscardBtn = document.getElementById("resumeDiscard");
@@ -106,20 +108,12 @@ function resetDoc() {
 function updatePlaceholder() {
   doc.classList.toggle("empty", doc.textContent.trim() === "" && doc.querySelectorAll(".note-anchor, .para-image").length === 0);
 }
-// 画像ブロックはBackspace/Deleteでのブラウザ標準の削除に任せている（専用の削除ボタンは置かない）ため、
+// 画像ブロックもBackspace/Deleteでのブラウザ標準の削除に対応しているため、
 // テキストの編集と同じ"input"イベントでも通し番号・サイドノート欄を必ず作り直す
 // （そうしないと、画像を削除してもサイドノート欄にその残骸が残ってしまう）。
 doc.addEventListener("input", () => { updatePlaceholder(); renumberAndLayout(); autoSaveDebounced(); });
 resetDoc();
 updatePlaceholder();
-
-clearBtn.onclick = () => {
-  resetDoc();
-  notesByAnchor.clear();
-  renumberAndLayout();
-  updatePlaceholder();
-  autoSaveDebounced();
-};
 
 // ---- 保存・読み込み（.jsonファイル） ----
 // 長文の作業を前提に、途中まで進めた内容をファイルとして残せるようにする。
@@ -200,134 +194,12 @@ saveBtn.onclick = () => {
   setStatus(`保存しました：${filename}`);
 };
 
-// ---- Markdown書き出し（MkDocs専用。弁護士とはjsonで共有する運用になったため、Obsidian互換は考慮しない）----
-// Jupyter Book（sphinx-book-theme）のMargin機能と同じ仕組みを想定：
-// 実体を確認したところ、あちらはJSではなくCSS（float + マイナスマージン）で余白に出している。
-// ただしその方式は「注釈の中身が、対応する本文のすぐ近く（同じ場所）に置かれている」ことが前提。
-// 標準のfootnotes記法（[^N] / [^N]: 内容）は中身をページ最下部に集めてしまうため、floatでは正しい
-// 高さに来ない。そのため、脚注記法はやめて<aside class="margin">を各段落の直後に直接埋め込む方式にする
-// （hotline側はCSSのfloatだけで済み、JSでの位置計算が不要になる）。
-// 画像はimages/フォルダに実ファイルとして書き出し、.mdと一緒にzipにまとめる
-// （data URLのままmdに埋め込むと.mdが肥大化し、MkDocs側のgit管理にも不向きなため）。
-
-// Markdownの記号として誤解釈されると困る「原文（貼り付けた地の文）」向けの強めのエスケープ。
-function escapeMarkdown(text) {
-  return text.replace(/([\\`*_[\]])/g, "\\$1");
-}
-
-// data URL（"data:image/png;base64,...."）から拡張子とバイト列を取り出す。
-function dataUrlExt(dataUrl) {
-  const m = /^data:image\/(png|jpeg|jpg|gif|webp)/.exec(dataUrl);
-  if (!m) return "png";
-  return m[1] === "jpeg" ? "jpg" : m[1];
-}
-function dataUrlToBytes(dataUrl) {
-  const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
-// .para内のノード（テキスト・<strong>・<u>・.note-anchor）を再帰的にMarkdown文字列へ変換する。
-// .note-anchorの中身は常にプレーンテキストのみを持つ（ノート追加時にrange.toString()で
-// 平文化されるため、太字/下線がかかっていてもノート化した時点で失われる＝既知の制約）。
-// 通し番号は<sup>N</sup>だけを本文中に残す（リンク先の脚注は無いので、リンクにはしない）。
-function paraNodeToMarkdown(node) {
-  if (node.nodeType === Node.TEXT_NODE) return escapeMarkdown(node.textContent);
-  if (node.nodeType !== Node.ELEMENT_NODE) return "";
-  if (node.tagName === "BR") return "";
-  if (node.classList && node.classList.contains("note-anchor")) {
-    const num = node.querySelector(".note-num")?.textContent || "";
-    const quoted = node.querySelector("span")?.textContent || "";
-    return escapeMarkdown(quoted) + (num ? `<sup>${num}</sup>` : "");
-  }
-  const inner = Array.from(node.childNodes).map(paraNodeToMarkdown).join("");
-  if (node.tagName === "STRONG") return `**${inner}**`;
-  if (node.tagName === "U") return `<u>${inner}</u>`;
-  return inner;   // 未知の要素はテキストだけ拾う
-}
-
-// 1件のアンカー（一文・画像）が持つノートの配列を<aside class="margin">1個にまとめる。
-// **太字**・<u>下線</u>はここでHTMLへ変換する（脚注記法をやめたのでmd_in_html拡張の有無に依存しない）。
-function buildAsideHtml(num, notes) {
-  const body = notes
-    .map((n) => `<strong>${escapeHtml(colorLabel(n.color))}：</strong>${formatNoteText(n.text)}`)
-    .join("<br>");
-  return `<aside class="margin"><sup>${num}</sup> ${body}</aside>`;
-}
-
-function paraToMarkdownBlock(paraEl) {
-  // インデントは行頭に本物の非改行スペース文字(U+00A0)を置いて表現する。
-  // 生の.mdファイルを直接見ても字下げに見え、かつMarkdown側の「行頭の空白は畳んで消す」処理は
-  // 半角スペース(U+0020)だけが対象でU+00A0は対象外のため、そのまま残る（"&nbsp;"という文字列を
-  // 書く方式だと、レンダリングされるまでは文字列そのものにしか見えず分かりにくいので変更した）。
-  // ぶら下げインデント（2行目以降だけの字下げ）はMarkdown単体では表現できないため非対応（既知の制約）。
-  const level = Number(paraEl.dataset.indentLevel || 0);
-  const indent = level > 0 ? " ".repeat(level * 2) : "";
-  const bodyMd = indent + Array.from(paraEl.childNodes).map(paraNodeToMarkdown).join("");
-
-  // その段落内にある注釈は、段落の直後にasideとしてまとめて出す（複数あれば出現順に並べる）。
-  // 段落の途中の正確な高さには来ないが、脚注として最下部に飛ばすよりずっと本文の近くに置ける。
-  const asides = Array.from(paraEl.querySelectorAll(".note-anchor"))
-    .map((anchor) => {
-      const num = anchor.querySelector(".note-num")?.textContent;
-      const notes = notesByAnchor.get(anchor.dataset.anchorId) || [];
-      return num && notes.length ? buildAsideHtml(num, notes) : null;
-    })
-    .filter(Boolean);
-
-  return [bodyMd, ...asides].join("\n\n");
-}
-
-function buildMarkdownExport() {
-  const lines = [];
-  const imageFiles = [];
-  let imgFileSeq = 1;
-
-  Array.from(doc.children).forEach((child) => {
-    if (!child.classList || !child.classList.contains("para")) return;
-    if (child.classList.contains("para-image")) {
-      const imgEl = child.querySelector(".para-image-img");
-      const fname = `img${imgFileSeq++}.${dataUrlExt(imgEl.src)}`;
-      imageFiles.push({ name: `images/${fname}`, bytes: dataUrlToBytes(imgEl.src) });
-
-      const blocks = [`![スクショ](images/${fname})`];
-      const badge = child.querySelector(".note-anchor");
-      const num = badge?.querySelector(".note-num")?.textContent;
-      const notes = badge ? notesByAnchor.get(badge.dataset.anchorId) || [] : [];
-      if (num && notes.length) blocks.push(buildAsideHtml(num, notes));
-      lines.push(blocks.join("\n\n"));
-    } else {
-      lines.push(paraToMarkdownBlock(child));
-    }
-  });
-
-  const titleLine = projectTitle() || "無題";
-  const frontmatter = `---\ntitle: "${titleLine.replace(/"/g, '\\"')}"\n---\n\n`;
-
-  return { mdText: frontmatter + lines.join("\n\n") + "\n", imageFiles, titleLine };
-}
-
-saveMdBtn.onclick = () => {
-  const { mdText, imageFiles, titleLine } = buildMarkdownExport();
-  const files = [
-    { name: `${sanitizeFilename(titleLine)}.md`, bytes: new TextEncoder().encode(mdText) },
-    ...imageFiles,
-  ];
-  const blob = buildZipBlob(files);
-  const namePart = projectTitle() ? `-${sanitizeFilename(projectTitle())}` : "";
-  const filename = `sidenote${namePart}-${timestamp()}.zip`;
-  downloadBlob(blob, filename);
-  setStatus(`書き出しました：${filename}（zip内に.mdと画像のimages/フォルダ）`);
-};
-
 // ---- A4 PDF化（ブラウザの印刷機能を使う）----
 // 独自にPDFを組み立てるのではなく、印刷用CSSを当てた#printDocをブラウザの印刷（→PDFに保存）に渡す方式。
 // サイドノートは画面のような絶対座標ではなく、mdと同じくJupyter Book方式（段落・画像とfloatで隣り合わせる）
 // にする。ページをまたぐレイアウトでは絶対座標が使えないため。
 
-// #doc内のノードをprintDoc用のDOMへ再帰的に組み立てる（Markdown版のparaNodeToMarkdownと同じ考え方）。
+// #doc内のノードをprintDoc用のDOMへ再帰的に組み立てる。
 function buildPrintNode(node) {
   if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent);
   if (node.nodeType !== Node.ELEMENT_NODE) return document.createDocumentFragment();
@@ -569,7 +441,7 @@ function checkAutoSaveOnLoad() {
 checkAutoSaveOnLoad();
 
 // 「新しい作業」：本文・ノート・画像に加えてタイトルも空にし、自動保存も消す（＝別の案件を新規に始める）。
-// 同じ案件を書き直したい時のための「文書をクリア」（タイトルは残す）とは意図が異なる。
+// 案件を切り替えずに一部だけ消したい場合は、各段落・画像ブロックのホバー操作（×削除）で個別に消す。
 resumeDiscardBtn.onclick = () => {
   try { localStorage.removeItem(AUTOSAVE_KEY); } catch (err) { /* noop */ }
   resetDoc();
@@ -849,8 +721,15 @@ function buildImageParaEl(paraId, dataUrl) {
   noteBtn.title = "この画像にコメントを追加（出典はサイドノートに記載してください）";
   meta.appendChild(noteBtn);
 
-  // 画像そのものの削除ボタンは置かない（カーソルを画像の脇に置いてBackspaceで削除する運用にする）。
-  // 「＋ノート」は操作性のため画像の上に置く（先に画像を選ばず操作できるように）。
+  // JIMDO的なブロック単位の操作に合わせ、画像ブロック自体にも削除ボタンを常設する
+  // （contentEditable="false"のブロックなのでボタンを内包しても本文の編集対象に混ざらない）。
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "para-image-del-btn";
+  delBtn.innerHTML = ICON_X;
+  delBtn.title = "この画像を削除";
+  meta.appendChild(delBtn);
+
   inner.appendChild(meta);
 
   const img = document.createElement("img");
@@ -877,6 +756,8 @@ function bindImageParaEvents(wrap) {
     pendingTarget = { type: "image", paraEl: wrap };
     openPopover(noteBtn.getBoundingClientRect());
   };
+
+  wrap.querySelector(".para-image-del-btn").onclick = () => deletePara(wrap);
 }
 
 // 画像は原文のロックが無い分テキストより単純：画像自身のparaIdをそのままアンカーIDとして使う
@@ -898,22 +779,84 @@ function ensureImageNoteBadge(paraEl) {
   notesRow.appendChild(badge);
 }
 
-imgInput.onchange = (e) => {
-  const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith("image/"));
-  imgInput.value = "";   // 同じファイルを続けて選び直せるようにリセット
-  if (!files.length) return;
-  // FileReaderは非同期なので、forEachで並行に読ませると完了順が入れ替わり挿入順が崩れる。
-  // 1件ずつ「直前に挿入した画像の直後」へ差し込むよう直列化して、選択順を保つ。
-  let afterEl = getCurrentParaOrLast();
+// 複数ファイルを「選択順のまま、指定した段落の直後」へ連続挿入する。
+// FileReaderは非同期なので、forEachで並行に読ませると完了順が入れ替わり挿入順が崩れる。
+// 1件ずつ「直前に挿入した画像の直後」へ差し込むよう直列化して、選択順を保つ。
+function insertImageFilesAfter(files, afterEl) {
+  let cur = afterEl;
   const insertNext = (i) => {
     if (i >= files.length) return;
-    buildAndInsertImageBlock(files[i], afterEl, (wrap) => {
-      afterEl = wrap;
+    buildAndInsertImageBlock(files[i], cur, (wrap) => {
+      cur = wrap;
       insertNext(i + 1);
     });
   };
   insertNext(0);
+}
+
+// ---- 段落ホバー時の操作（＋画像／×削除）----
+// JIMDOのようなブロック単位の操作にするため、グローバルな「スクショ」「文書をクリア」ボタンは廃止し、
+// 段落にカーソルを乗せた時だけ、その段落の直後に画像を挿入／その段落自体を削除するアイコンを出す。
+// これらのアイコンは#doc（contenteditable）の外側の要素として1つだけ用意し、位置だけをJSで合わせる
+// （#docの中に直接ボタンを置くと、保存(.json)やPDF印刷が本文の一部としてボタンまで拾ってしまうため）。
+const paraHoverEl = document.getElementById("paraHover");
+const paraHoverFileInput = document.getElementById("paraHoverFile");
+const paraHoverDelBtn = document.getElementById("paraHoverDel");
+let hoveredPara = null;
+
+function showParaHover(para) {
+  hoveredPara = para;
+  const pRect = para.getBoundingClientRect();
+  const hostRect = docLeftEl.getBoundingClientRect();
+  paraHoverEl.style.top = `${pRect.top - hostRect.top}px`;
+  paraHoverEl.hidden = false;
+}
+function hideParaHover() {
+  hoveredPara = null;
+  paraHoverEl.hidden = true;
+}
+
+doc.addEventListener("mouseover", (e) => {
+  const para = e.target.closest(".para");
+  // 画像ブロックは専用の削除ボタンを自身の中に持つため、テキスト段落だけを対象にする。
+  if (para && !para.classList.contains("para-image")) showParaHover(para);
+});
+doc.addEventListener("mouseout", (e) => {
+  // 段落からアイコン自体へ移動した場合、あるいは同じ段落内を移動しただけの場合は隠さない。
+  const to = e.relatedTarget;
+  if (to && ((to.closest && to.closest(".para") === hoveredPara) || paraHoverEl.contains(to))) return;
+  hideParaHover();
+});
+paraHoverEl.addEventListener("mouseleave", hideParaHover);
+
+paraHoverFileInput.onchange = (e) => {
+  const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith("image/"));
+  paraHoverFileInput.value = "";   // 同じファイルを続けて選び直せるようにリセット
+  if (!files.length || !hoveredPara) return;
+  insertImageFilesAfter(files, hoveredPara);
 };
+
+paraHoverDelBtn.onclick = () => {
+  if (hoveredPara) deletePara(hoveredPara);
+};
+
+// 段落（テキスト・画像どちらも）を1つ削除する。文書は常に最低1つの.paraを持つ、という
+// resetDoc()以来の前提を守るため、残り1つになる場合は削除せず空のテキスト段落に戻す。
+function deletePara(para) {
+  const remaining = doc.querySelectorAll(".para").length;
+  if (remaining <= 1) {
+    para.className = "para";
+    para.removeAttribute("data-para-id");
+    para.removeAttribute("contenteditable");   // .para-imageで付けたcontentEditable="false"を解除
+    para.innerHTML = "<br>";
+  } else {
+    para.remove();
+  }
+  hideParaHover();
+  updatePlaceholder();
+  renumberAndLayout();
+  autoSaveDebounced();
+}
 
 // Ctrl+B / Ctrl+U で選択範囲を **太字** / <u>下線</u> に囲む（ノート入力欄）
 function wrapSelection(textarea, before, after) {
@@ -935,36 +878,14 @@ popoverInput.addEventListener("keydown", (e) => {
   else if (e.key === "u" || e.key === "U") { e.preventDefault(); wrapSelection(popoverInput, "<u>", "</u>"); }
 });
 
-// ---- 本文(#doc)側のCtrl+B / Ctrl+U ----
-// execCommand('bold'/'underline')は廃止が進んでいるコマンドでブラウザによっては何も起きないため使わない。
-// ノート追加で動作確認済みのinsertHTML方式に統一し、<strong>/<u>タグを選択範囲に直接かぶせる。
-function applyDocFormat(tag) {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;   // 選択なしでは何もしない
-  const range = sel.getRangeAt(0);
-  if (!doc.contains(range.commonAncestorContainer)) return;
-  if (rangeOverlapsLockedAnchor(range)) return;   // ロック範囲・画像ブロックをまたぐ場合は何もしない
-
-  const html = `<${tag}>${escapeHtml(range.toString())}</${tag}>`;
-  sel.removeAllRanges();
-  sel.addRange(range);
-  document.execCommand("insertHTML", false, html);
-  // 注：既に太字/下線になっている範囲を選んでもう一度押しても解除（トグル）はしない。
-  // 外したい場合は選択し直して手動でタグの内側だけ選び、Deleteしてから打ち直してください。
-}
-
 doc.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); insertNewParagraph(); return; }
-  const mod = e.ctrlKey || e.metaKey;
-  if (!mod) return;
-  if (e.key === "b" || e.key === "B") { e.preventDefault(); applyDocFormat("strong"); }
-  else if (e.key === "u" || e.key === "U") { e.preventDefault(); applyDocFormat("u"); }
   // Ctrl+Zはここでは何も処理しない＝ブラウザのネイティブundoにそのまま任せる。
   // 上のノート追加/削除をexecCommand経由にしたのは、まさにこのネイティブundoの対象に含めるため。
 });
 
 // Enterで新しい.para（段落）を作る。ブラウザ標準のEnter挙動任せだとclass="para"の無い
-// ただの<div>やbrになり、その行にインデントを適用できなくなるため、自前で挿入して制御する。
+// ただの<div>やbrになり、通し番号・サイドノート配置の単位（.para）として扱えなくなるため、自前で挿入して制御する。
 function insertNewParagraph() {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return;
@@ -985,11 +906,13 @@ function insertNewParagraph() {
   sel.addRange(r);
 }
 
-// ---- インデント／ぶら下げインデント（カーソルが属する.para単位で適用） ----
-// 1em ≒ 全角1文字（37字組版と同じ前提）。インデント・ぶら下げとも1段階＝1文字分にする。
+// インデント／ぶら下げインデントの編集ボタンはシンプル版では廃止したが、文書作成版で
+// 付けたインデント情報を含む.jsonを読み込んだ場合に備え、印刷（PDF化）側の表示ロジック
+// （1em ≒ 全角1文字、37字組版と同じ前提）はそのまま残す。
 const INDENT_STEP_EM = 1;
 const HANGING_EM = 1;
 
+// 画像挿入位置（カーソルが属する.para）を求めるのに使う。
 function getCurrentPara() {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return null;
@@ -997,54 +920,6 @@ function getCurrentPara() {
   if (node.nodeType !== 1) node = node.parentElement;
   return node ? node.closest(".para") : null;
 }
-
-// カーソルだけ（範囲選択なし）なら今まで通りその1段落だけ、複数段落にまたがる範囲選択なら
-// かかっている段落を全部まとめて返す（例：⑴〜⑷を選択してまとめてインデント、に対応するため）。
-function getTargetParas() {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0) return [];
-  if (sel.isCollapsed) {
-    const para = getCurrentPara();
-    return para ? [para] : [];
-  }
-  const range = sel.getRangeAt(0);
-  if (!doc.contains(range.commonAncestorContainer)) return [];
-  return Array.from(doc.querySelectorAll(".para")).filter((p) => range.intersectsNode(p));
-}
-
-function applyParaStyle(para) {
-  const level = Number(para.dataset.indentLevel || 0);
-  const hanging = para.dataset.hanging === "1";
-  const base = level * INDENT_STEP_EM;
-  para.style.paddingLeft = `${base + (hanging ? HANGING_EM : 0)}em`;
-  para.style.textIndent = hanging ? `-${HANGING_EM}em` : "0";
-  autoSaveDebounced();   // style/data属性の直接操作はinputイベントが飛ばないため、ここで明示的に呼ぶ
-}
-
-function indentPara(delta) {
-  const paras = getTargetParas().filter((p) => !p.classList.contains("para-image"));   // 画像ブロックは対象外
-  paras.forEach((para) => {
-    const level = Math.max(0, Number(para.dataset.indentLevel || 0) + delta);
-    para.dataset.indentLevel = String(level);
-    applyParaStyle(para);
-  });
-}
-
-function toggleHanging() {
-  const paras = getTargetParas().filter((p) => !p.classList.contains("para-image"));
-  if (!paras.length) return;
-  // 複数段落で状態がバラバラだと「トグル」の意味が定まらないため、先頭の段落を基準に全体を揃える
-  // （先頭が未適用ならまとめてON、適用済みならまとめてOFF）。
-  const turnOn = paras[0].dataset.hanging !== "1";
-  paras.forEach((para) => {
-    para.dataset.hanging = turnOn ? "1" : "0";
-    applyParaStyle(para);
-  });
-}
-
-document.getElementById("indentInc").onclick = () => indentPara(1);
-document.getElementById("indentDec").onclick = () => indentPara(-1);
-document.getElementById("hangingBtn").onclick = () => toggleHanging();
 
 // ---- コメント削除（スレッドの1件だけ削除／最後の1件を消したらロックも解除） ----
 function removeNoteFromAnchor(anchor, anchorId, noteId) {
@@ -1146,7 +1021,19 @@ function getPositionRect(mark) {
 
 function layoutSidenotes(ordered) {
   docRightEl.innerHTML = "";
-  if (ordered.length === 0) return;
+  if (ordered.length === 0) {
+    // 注釈が1件も無い間は、使い方が伝わるようグレーアウトの見本カードを1枚だけ出しておく
+    // （実際のノートを1件でも付けた瞬間に消える。本文側の見本＜#docSample＞とは別に、
+    // こちらは「注釈が0件かどうか」で独立して出し分ける）。
+    const sample = document.createElement("div");
+    sample.className = "sidenote-card sidenote-sample";
+    sample.setAttribute("aria-hidden", "true");
+    sample.style.top = "20px";
+    sample.innerHTML = '<span class="sidenote-num">1</span>' +
+      '<span class="sidenote-text">（例）ここに相手方や自分へのコメントが入ります</span>';
+    docRightEl.appendChild(sample);
+    return;
+  }
   const originTop = doc.getBoundingClientRect().top;
   const GAP = 20;   // 罫線ではなく余白で個々のノートを区切るため、番号+枠線を使っていた頃より広めに取る
   let prevBottom = -Infinity;

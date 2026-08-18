@@ -3,7 +3,7 @@
 ## Bootstrap Icons
 
 `public/index.html` と `public/app.js` に、いくつかのアイコンをSVGとして直接埋め込んでいます
-（保存・開く・画像・PDF・Markdown・×アイコンなど）。CDN読み込みやWebフォント同梱は行わず、
+（保存・開く・画像・PDF・×アイコンなど）。CDN読み込みやWebフォント同梱は行わず、
 使用する数個分のSVGパスのみをソースにコピーしています。
 
 - 出典: https://github.com/twbs/icons
