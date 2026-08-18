@@ -199,8 +199,12 @@ saveBtn.onclick = () => {
 
 // ---- A4 PDF化（ブラウザの印刷機能を使う）----
 // 独自にPDFを組み立てるのではなく、印刷用CSSを当てた#printDocをブラウザの印刷（→PDFに保存）に渡す方式。
-// サイドノートは画面のような絶対座標ではなく、mdと同じくJupyter Book方式（段落・画像とfloatで隣り合わせる）
-// にする。ページをまたぐレイアウトでは絶対座標が使えないため。
+// サイドノートは段落を分割せず、注釈の直後にインラインで埋め込んだ上でfloat:right＋マイナスマージンにより
+// 段落の右の余白へ逃がす（Tufte CSSとして知られる余白注釈の定番手法）。2026-08-19以前は「段落を注釈の
+// 位置で複数の<p>に分割する」方式だったが、分割した<p>同士は同じ幅のfloat:leftになるため横に並ぶ余地が
+// 無く、注釈の直後で必ず改行されたように見える不具合になっていた（分割しない今の方式ならこの問題が
+// 原理的に起きない）。ページをまたぐレイアウトでは絶対座標（画面と同じ方式）が使えないため、
+// float方式を使う。
 
 // #doc内のノードをprintDoc用のDOMへ再帰的に組み立てる。
 function buildPrintNode(node) {
@@ -216,6 +220,10 @@ function buildPrintNode(node) {
       const sup = document.createElement("sup");
       sup.textContent = num;
       frag.appendChild(sup);
+      // サイドノート本文を、対応する一文のすぐ後ろにインラインで埋め込む。段落を分割しないため、
+      // ここに差し込んでもテキストの流れは途切れない（見た目はCSS側のfloatが担当する）。
+      const notes = notesByAnchor.get(node.dataset.anchorId) || [];
+      if (notes.length) frag.appendChild(buildPrintAsideEl(num, notes));
     }
     return frag;
   }
@@ -249,52 +257,24 @@ function buildPrintAsideEl(num, notes) {
   return aside;
 }
 
-// 段落を「注釈の直後」で複数の<p class="print-para print-para-cont">に分割し、各セグメントの
-// すぐ後ろに対応するasideを挟む。分割しないと、1段落の途中の離れた場所にある注釈同士が
-// 段落の後ろにまとめて出てしまい、対応する文から離れた位置に見えてしまう（既知の制約）。
-// 2026-08-16：以前この方式は実機の印刷プレビューでサイドノートが消える不具合が2回再現し撤回した。
-// 原因はDOM構築ロジックではなく（jsdomでは正しいと確認済み）、印刷直前のDOM大量書き換え後に
-// レイアウトが確定しないままprintのレンダリングパスに入っていた可能性が高いと判断し、
-// buildPrintDoc()の最後に強制リフローを入れた上で再挑戦する（下記の見出しコメント参照）。
-function buildPrintParaSegments(paraEl) {
+// 段落は分割せず1つの<p class="print-para">のまま保つ（注釈のサイドノートはbuildPrintNode内で
+// 対応する一文の直後にインラインで埋め込み済み。見た目の位置はCSS側のfloatが担当する）。
+// 2026-08-16：かつての「段落を注釈の位置で複数の<p>に分割する」方式は、以前この方式は実機の
+// 印刷プレビューでサイドノートが消える不具合が2回再現し撤回した経緯がある（buildPrintDoc()の
+// 最後の強制リフローはその対策）。今回は分割自体をやめたので、その不具合の再発リスクは無い。
+function buildPrintPara(paraEl) {
   const level = Number(paraEl.dataset.indentLevel || 0);
   const hanging = paraEl.dataset.hanging === "1";
   const base = level * INDENT_STEP_EM;
 
-  // 子ノードをnote-anchorの直後で区切り、セグメント（ノードの配列）の配列にする
-  const segments = [];
-  let current = [];
-  Array.from(paraEl.childNodes).forEach((n) => {
-    current.push(n);
-    if (n.nodeType === Node.ELEMENT_NODE && n.classList.contains("note-anchor")) {
-      segments.push(current);
-      current = [];
-    }
-  });
-  if (current.length) segments.push(current);
-  if (!segments.length) segments.push([]);   // 空段落（<br>のみ等）でも1つは出力する
-
-  const elements = [];
-  segments.forEach((nodes, i) => {
-    const p = document.createElement("p");
-    p.className = segments.length > 1 ? "print-para print-para-cont" : "print-para";
-    if (level > 0 || hanging) {
-      p.style.paddingLeft = `${base + (hanging ? HANGING_EM : 0)}em`;
-      // ぶら下げの字下げ（text-indentのマイナス）は「段落の1行目」だけに付ける。分割後の
-      // 2セグメント目以降は同じ段落の続きであって新しい段落の先頭ではないため付けない。
-      p.style.textIndent = (hanging && i === 0) ? `-${HANGING_EM}em` : "0";
-    }
-    nodes.forEach((n) => p.appendChild(buildPrintNode(n)));
-    elements.push(p);
-
-    const last = nodes[nodes.length - 1];
-    if (last && last.nodeType === Node.ELEMENT_NODE && last.classList.contains("note-anchor")) {
-      const num = last.querySelector(".note-num")?.textContent;
-      const notes = notesByAnchor.get(last.dataset.anchorId) || [];
-      if (num && notes.length) elements.push(buildPrintAsideEl(num, notes));
-    }
-  });
-  return elements;
+  const p = document.createElement("p");
+  p.className = "print-para";
+  if (level > 0 || hanging) {
+    p.style.paddingLeft = `${base + (hanging ? HANGING_EM : 0)}em`;
+    p.style.textIndent = hanging ? `-${HANGING_EM}em` : "0";
+  }
+  Array.from(paraEl.childNodes).forEach((n) => p.appendChild(buildPrintNode(n)));
+  return p;
 }
 
 function buildPrintDoc() {
@@ -323,29 +303,18 @@ function buildPrintDoc() {
       const notes = badge ? notesByAnchor.get(badge.dataset.anchorId) || [] : [];
       if (num && notes.length) printDocEl.appendChild(buildPrintAsideEl(num, notes));
     } else {
-      // 1段落の分割処理がどんな構造に対しても必ず成功する保証はまだ無いため、万一失敗しても
-      // 印刷全体（他の段落・注釈）が巻き添えで消えないよう、その段落だけ簡易フォールバック
-      // （分割せず段落まるごと1つの<p>＋注釈は段落の後ろにまとめて出す旧方式）に切り替える。
+      // buildPrintNode/buildPrintParaは再帰的なDOM構築のみ（複雑な分割ロジックは無い）なので
+      // 通常は失敗しないはずだが、想定外の構造（壊れたデータの.json読み込み時等）でも印刷全体
+      // （他の段落・注釈）が巻き添えで消えないよう、念のためこの段落だけの簡易フォールバック
+      // （注釈・書式は失われるがテキストだけは残す）を用意しておく。
       try {
-        buildPrintParaSegments(child).forEach((el) => printDocEl.appendChild(el));
+        printDocEl.appendChild(buildPrintPara(child));
       } catch (err) {
-        console.error("buildPrintParaSegments failed, falling back for this paragraph:", err, child);
+        console.error("buildPrintPara failed, falling back for this paragraph:", err, child);
         const p = document.createElement("p");
         p.className = "print-para";
-        const level = Number(child.dataset.indentLevel || 0);
-        const hanging = child.dataset.hanging === "1";
-        if (level > 0 || hanging) {
-          const base = level * INDENT_STEP_EM;
-          p.style.paddingLeft = `${base + (hanging ? HANGING_EM : 0)}em`;
-          p.style.textIndent = hanging ? `-${HANGING_EM}em` : "0";
-        }
-        Array.from(child.childNodes).forEach((n) => p.appendChild(buildPrintNode(n)));
+        p.textContent = child.textContent;
         printDocEl.appendChild(p);
-        Array.from(child.querySelectorAll(".note-anchor")).forEach((anchor) => {
-          const num = anchor.querySelector(".note-num")?.textContent;
-          const notes = notesByAnchor.get(anchor.dataset.anchorId) || [];
-          if (num && notes.length) printDocEl.appendChild(buildPrintAsideEl(num, notes));
-        });
       }
     }
   });

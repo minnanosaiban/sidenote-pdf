@@ -267,18 +267,29 @@ body.print-active #printDoc {
 }
 body.print-active #printDoc::after { content: ""; display: block; clear: both; }
 body.print-active .print-title { font-size: 14pt; font-weight: 700; margin: 0 0 16pt; clear: both; }
-/* clear:leftではなくclear:bothにする：注釈(float:right)の方が対応する段落より長いと、
-   次の段落が「左側さえ空けば」進んでしまい、注釈と本文の対応が上に詰まってズレていく。
-   bothにして「左右どちらも空くまで次の段落へ進まない」ようにし、対応が大きくズレるのを防ぐ。 */
+/* 段落はfloatさせず、幅115mmの通常のブロックとして縦に積む（＝本文は自然な折り返し以外では
+   絶対に改行されない）。サイドノートは段落の中に対応する一文の直後としてインラインで埋め込み
+   （buildPrintNode参照）、.print-asideのfloat:right＋マイナスマージンで段落の右の余白へ逃がす
+   （Tufte CSSとして知られる余白注釈の定番手法）。
+   2026-08-19：以前は「段落を注釈の位置で複数の<p>に分割する」方式だった。分割した<p>同士は
+   同じ幅のfloat:leftになり横に並ぶ余地が無いため、注釈の直後で必ず改行されたように見える
+   不具合になっていた。段落を分割しない今の方式なら、この問題は原理的に起きない。
+   clear:bothは主に画像(.print-img、floatのまま)の直後に段落が来た時のため（画像に横並びで
+   食い込まないよう、その下まで進んでから始める）。 */
 body.print-active .print-para {
-  width: 115mm; float: left; clear: both; margin: 0 0 10pt;
+  width: 115mm; clear: both; margin: 0 0 10pt;
   overflow-wrap: break-word;
 }
-/* 1段落を注釈の位置で複数の<p>に分割した時の続き部分。margin-bottomを持たせず、
-   見た目上は1つの段落が続いているように見せる（改行のタイミングは変わる点は既知の制約）。 */
-body.print-active .print-para-cont { margin: 0; }
+/* floatの子（.print-aside）は既定では親の高さに含まれない（floatの外に高さが漏れる）。
+   次の段落がそこへ食い込まないよう、clearfixで段落自身の高さに含める。overflow:hiddenでの
+   クリアフィックスは、逃がした注釈（マイナスマージンで段落の外に出ている）ごと切り取って
+   しまうため使えない。 */
+body.print-active .print-para::after { content: ""; display: table; clear: both; }
 body.print-active .print-img { width: 115mm; max-width: 115mm; float: left; clear: both; margin: 0 0 10pt; display: block; }
 body.print-active .print-aside {
   width: 48mm; float: right; clear: right; margin: 0 0 8pt; font-size: 8.5pt; line-height: 1.6; color: #333;
 }
+/* 段落の中にインラインで埋め込まれた場合だけ、段落自身の右の余白（外）へ逃がす。画像の直後に
+   段落の外（#printDocの直接の子）として置かれる場合（画像への注釈）は今まで通りfloat:rightのみ。 */
+body.print-active .print-para .print-aside { margin-right: -48mm; }
 body.print-active #printDoc sup { font-size: .75em; color: #666; }
