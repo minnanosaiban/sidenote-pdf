@@ -498,7 +498,7 @@ colorPickerEl.querySelectorAll(".color-swatch").forEach((btn) => {
 });
 updateColorSwatchLabels();
 
-// ---- 「設定」（黒・青の名前）と「各種ボタンのヘルプ」のドロップダウン ----
+// ---- 「設定」（黒・青の名前）と「ヘルプ」のドロップダウン ----
 // 黒・青の名前はこの端末の既定値としてlocalStorageにも残し、次に新規で作る文書にも引き継ぐ
 // （個別の.jsonファイルを開いた場合は、そのファイルに保存されている名前が優先される＝applyProjectData側）。
 const COLOR_NAMES_KEY = "sidenote-pdf-color-names-v1";
@@ -546,7 +546,7 @@ showNamesToggle.onchange = () => {
   renumberAndLayout();
 };
 
-// 「設定」「各種ボタンのヘルプ」は同じ開閉パターン（同じボタンをもう一度押す、または他方を開くと閉じる）。
+// 「設定」「ヘルプ」は同じ開閉パターン（同じボタンをもう一度押す、または他方を開くと閉じる）。
 function toggleDropdownPanel(panelEl, btnEl) {
   const opening = panelEl.hidden;
   document.querySelectorAll(".dropdown-panel").forEach((el) => { el.hidden = true; });
@@ -805,6 +805,8 @@ const paraHoverDelBtn = document.getElementById("paraHoverDel");
 let hoveredPara = null;
 
 function showParaHover(para) {
+  cancelParaHoverHide();
+  if (para === hoveredPara) return;   // 同じ段落内を動いただけなら位置の再計算は不要
   hoveredPara = para;
   const pRect = para.getBoundingClientRect();
   const hostRect = docLeftEl.getBoundingClientRect();
@@ -816,18 +818,27 @@ function hideParaHover() {
   paraHoverEl.hidden = true;
 }
 
+// .paraはmax-width:37emで#docより幅が狭いため、段落からアイコンへ向かってマウスを動かすと
+// 「#docの中だが.paraの外」という隙間を必ず一度通る。隙間で即座に隠すとアイコンに手が届かず
+// クリックできない不具合になるため、隠すのは少し待ってから（＝離れた先で.paraかアイコン自体に
+// 入り直せば隠さない）にする。よくある「hover intent」の遅延パターン。
+let paraHoverHideTimer = null;
+function scheduleParaHoverHide() {
+  clearTimeout(paraHoverHideTimer);
+  paraHoverHideTimer = setTimeout(hideParaHover, 250);
+}
+function cancelParaHoverHide() {
+  clearTimeout(paraHoverHideTimer);
+}
+
 doc.addEventListener("mouseover", (e) => {
   const para = e.target.closest(".para");
   // 画像ブロックは専用の削除ボタンを自身の中に持つため、テキスト段落だけを対象にする。
   if (para && !para.classList.contains("para-image")) showParaHover(para);
 });
-doc.addEventListener("mouseout", (e) => {
-  // 段落からアイコン自体へ移動した場合、あるいは同じ段落内を移動しただけの場合は隠さない。
-  const to = e.relatedTarget;
-  if (to && ((to.closest && to.closest(".para") === hoveredPara) || paraHoverEl.contains(to))) return;
-  hideParaHover();
-});
-paraHoverEl.addEventListener("mouseleave", hideParaHover);
+doc.addEventListener("mouseout", scheduleParaHoverHide);
+paraHoverEl.addEventListener("mouseenter", cancelParaHoverHide);
+paraHoverEl.addEventListener("mouseleave", scheduleParaHoverHide);
 
 paraHoverFileInput.onchange = (e) => {
   const files = Array.from(e.target.files || []).filter((f) => f.type.startsWith("image/"));

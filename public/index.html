@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるアプリ">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
 <!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=19">
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
@@ -29,6 +29,7 @@
 ※サイドノートを付けたい一文・画像を選択すると入力欄が表示されます<br>
 ※サイドノートで整理した後は、PDFで書き出すことができます<br>
 ※段落にカーソルを乗せると、画像の挿入・段落の削除ができます（右側にアイコンが表示されます）<br>
+※「保存」はJSON形式のファイルに書き出します（続きから作業・共有相手とのやり取り用）<br>
 ※スクショ・画像貼り付けは、Ctrl＋C、Ctrl＋Vも対応しています。<br>
 ※スクショの出典（Webサイト・Googleドライブ等）はサイドノートに書いて記録できます
 </div>
@@ -41,22 +42,20 @@
 <div class="toolbar-sticky">
 <div class="toolbar">
   <button id="settingsBtn" type="button">設定</button>
-  <button id="helpBtn" type="button">各種ボタンのヘルプ</button>
+  <button id="helpBtn" type="button">ヘルプ</button>
   <label class="filebtn2" title="保存した.jsonファイルを開く">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/></svg>
-    開く（.json）
+    開く
     <input id="loadInput" type="file" accept="application/json,.json">
   </label>
   <button id="saveBtn" type="button" title="今の内容を.jsonファイルとして保存">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/></svg>
-    保存（.json）
+    保存
   </button>
   <button id="savePdfBtn" type="button" title="A4のPDFとして保存（印刷ダイアログが開くので、保存先で「PDFに保存」を選んでください）">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM1.6 11.85H0v3.999h.791v-1.342h.803q.43 0 .732-.173.305-.175.463-.474a1.4 1.4 0 0 0 .161-.677q0-.375-.158-.677a1.2 1.2 0 0 0-.46-.477q-.3-.18-.732-.179m.545 1.333a.8.8 0 0 1-.085.38.57.57 0 0 1-.238.241.8.8 0 0 1-.375.082H.788V12.48h.66q.327 0 .512.181.185.183.185.522m1.217-1.333v3.999h1.46q.602 0 .998-.237a1.45 1.45 0 0 0 .595-.689q.196-.45.196-1.084 0-.63-.196-1.075a1.43 1.43 0 0 0-.589-.68q-.396-.234-1.005-.234zm.791.645h.563q.371 0 .609.152a.9.9 0 0 1 .354.454q.118.302.118.753a2.3 2.3 0 0 1-.068.592 1.1 1.1 0 0 1-.196.422.8.8 0 0 1-.334.252 1.3 1.3 0 0 1-.483.082h-.563zm3.743 1.763v1.591h-.79V11.85h2.548v.653H7.896v1.117h1.606v.638z"/></svg>
-    保存（.pdf）
+    PDF化
   </button>
-</div>
-<div class="toolbar">
   <button id="resumeApply" type="button" disabled>続きから再開</button>
   <button id="resumeDiscard" type="button">新しい作業</button>
 </div>
@@ -92,7 +91,7 @@
     <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像も内包されます）。</li>
     <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
     <li>「新しい作業」は本文・ノート・画像・タイトルを全て消して、別の案件を新規に始めます。</li>
-    <li>「保存（.pdf）」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
+    <li>「PDF化」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
   </ul>
 </div>
 
@@ -138,6 +137,6 @@
   </div>
 </div>
 
-<script src="app.js?v=25"></script>
+<script src="app.js?v=26"></script>
 </body>
 </html>

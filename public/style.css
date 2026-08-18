@@ -22,12 +22,11 @@ body {
   max-width: 900px; margin: 0 auto 16px; padding-top: 4px;
 }
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
-.toolbar + .toolbar { margin-top: 0; }
-/* ボタン・ファイル選択ラベルは高さ・最小幅を揃えて、ラベルの長さに関わらず整列させる
-   （短い文字はmin-widthの中で中央寄せにする）。 */
+/* ボタン・ファイル選択ラベルは高さ・幅を全て揃えて1列に並べる（ラベルの長さに関わらず同じ幅）。
+   幅は最も長い「続きから再開」に合わせる。短い文字はwidthの中で中央寄せにする。 */
 /* 罫線ではなくグレーの塗りつぶしで見せる（枠線の主張を抑える方針）。 */
 .toolbar button, .toolbar .filebtn2 {
-  font-size: 13px; height: 34px; min-width: 108px; padding: 0 12px; border-radius: 6px; border: none;
+  font-size: 13px; height: 34px; width: 118px; padding: 0 12px; border-radius: 6px; border: none;
   background: #eef0f3; color: #31333f; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
 }
 .icon { width: 1.05em; height: 1.05em; flex: none; }   /* Bootstrap Icons（MITライセンス）のSVGを絵文字の代わりに使う */
