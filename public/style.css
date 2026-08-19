@@ -80,6 +80,9 @@ body {
   font-size: 12.5px; color: #31333f; cursor: pointer;
 }
 .settings-toggle input { flex: none; }
+/* helpPanelでは.settings-toggleを先頭（<ul>より上）に置くため、上ではなく下に余白を持たせる
+   （settingsPanelでは最後の要素として使うため、そちらは上のmargin-top:14pxのままでよい）。 */
+.dropdown-panel > .settings-toggle:first-child { margin-top: 0; margin-bottom: 14px; }
 
 /* ── ヘルプアイコン（Streamlitのhelp=に相当・現在は未使用だが今後の説明表示用に残す）──
    標準のtitle属性は「どこにカーソルを置けば説明が出るか」が画面から分からず見落とされやすいため、
