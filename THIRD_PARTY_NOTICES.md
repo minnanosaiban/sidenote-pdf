@@ -1,5 +1,17 @@
 # Third-party notices
 
+## PDF.js
+
+`public/vendor/pdfjs/pdf.min.mjs`・`public/vendor/pdfjs/pdf.worker.min.mjs`・`public/vendor/pdfjs/cmaps/`に、
+PDF.js（pdfjs-dist 6.2.108）のビルド済みファイル一式をそのまま同梱しています（`public/`配下がそのまま
+Cloudflare Pagesの公開対象なので、実際に配信されるのはここ）。CDN読み込みは行わず、ローカルで完結させています。
+
+- 出典: https://github.com/mozilla/pdf.js （npm: pdfjs-dist）
+- ライセンス: Apache License 2.0（全文は `public/vendor/pdfjs/LICENSE`）
+- cmaps/は、埋め込みフォントを持たないCJKフォント参照PDFでも文字化けしないようにするための定義済み
+  エンコーディング一式（169ファイル、約1.5MB）。実機テストで「フォント埋め込み無しの日本語PDF」が
+  文字化けする不具合を確認し、同梱を決めた（app.jsのgetDocument呼び出しでcMapUrl指定）。
+
 ## Bootstrap Icons
 
 `public/index.html` と `public/app.js` に、いくつかのアイコンをSVGとして直接埋め込んでいます

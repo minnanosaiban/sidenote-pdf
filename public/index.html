@@ -18,7 +18,7 @@
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるアプリ">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
 <!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="style.css?v=29">
 </head>
 <body>
 
@@ -52,10 +52,12 @@
   <button id="helpBtn" type="button">ヘルプ</button>
   <button id="resumeDiscard" type="button">新しい作業</button>
   <button id="resumeApply" type="button" disabled>続きから再開</button>
-  <label class="filebtn2" title="保存した.jsonファイルを開く">
+  <label class="filebtn2" title="保存した.jsonファイル、またはPDFファイルを開く">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/></svg>
     開く
-    <input id="loadInput" type="file" accept="application/json,.json">
+    <!-- .json（続きから編集）と.pdf（新規にPDFへ注釈を付け始める）の両方をここで受け付け、
+         拡張子でJS側（loadInput.onchange）が処理を振り分ける（ボタンは増やさない方針）。 -->
+    <input id="loadInput" type="file" accept="application/json,.json,application/pdf,.pdf">
   </label>
   <button id="saveBtn" type="button" title="今の内容を.jsonファイルとして保存">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/></svg>
@@ -95,7 +97,8 @@
 <div class="dropdown-panel" id="helpPanel" hidden>
   <ul>
     <li>段落にカーソルを乗せると、右側に「＋画像」「×削除」のアイコンが出ます。「＋画像」はその段落の直後に画像を挿入、「×削除」はその段落（画像の場合はその1枚）だけを消します。</li>
-    <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像も内包されます）。</li>
+    <li>「開く」でPDFファイルを選ぶと、そのPDFにサイドノートを付けるモードになります。文字が選択できるPDFは範囲選択、スキャンなど文字が選択できないPDFはクリックまたはドラッグでノートの位置を指定します。</li>
+    <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像・PDF本体も内包されます）。</li>
     <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
     <li>「新しい作業」は本文・ノート・画像・タイトルを全て消して、別の案件を新規に始めます。</li>
     <li>「PDF化」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
@@ -109,11 +112,15 @@
 
 <div class="doc-wrap">
   <div class="doc-left">
-    <div class="doc-label">本文（テキスト・スクショ）</div>
-    <div class="doc-stack">
+    <div class="doc-label" id="docLabel">本文（テキスト・スクショ）</div>
+    <div class="doc-stack" id="docStack">
       <div id="doc" contenteditable="true"></div>
       <div id="docSample" aria-hidden="true">（例）本件契約の第◯条について、相手方から異議が示されました。</div>
     </div>
+    <!-- PDFモード（「開く」で.pdfを選んだ時）はdoc-stackの代わりにこちらを表示する。
+         ページ（.pdf-page）をJSで縦に積み、テキストPDFはテキスト選択、スキャンPDFはクリック／
+         ドラッグでノートの位置を指定する（自動判定、詳しくはapp.js参照）。 -->
+    <div id="pdfViewer" hidden></div>
     <!-- 段落ホバー時に出す「＋画像」「×削除」。#docの外側に1つだけ置き、位置はJSで合わせる
          （#docの中に直接置くと、保存(.json)やPDF印刷が本文の一部として拾ってしまうため）。
          .doc-left基準の絶対座標で置くため、.doc-leftの内側（.doc-stackの兄弟）に置く。 -->
@@ -149,6 +156,6 @@
   </div>
 </div>
 
-<script src="app.js?v=31"></script>
+<script src="app.js?v=38"></script>
 </body>
 </html>

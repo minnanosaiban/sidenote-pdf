@@ -110,6 +110,9 @@ body {
 /* #docと見本(#docSample)を同じマス目に重ねて表示する（絶対座標の手計算をせずに済むCSS Gridの技）。 */
 .doc-stack { display: grid; }
 .doc-stack > * { grid-area: 1 / 1; }
+/* [hidden]とdisplay:gridが同じ詳細度になり後勝ちでgridが表示してしまうのを防ぐ（.para-hover[hidden]と
+   同じ理由・同じ対策。pdfモードでdocStackEl.hidden=trueにしてもこれが無いと本文の見本が透けて残る）。 */
+.doc-stack[hidden] { display: none; }
 
 #doc {
   border: 1px solid #e2e4e9; border-radius: 8px; padding: 20px;
@@ -244,6 +247,70 @@ body {
   .para-hover { left: auto; right: 4px; margin-left: 0; }
 }
 
+/* ── PDFモード（「開く」で.pdfを選んだ時） ──
+   #doc（contenteditable本文）の代わりに#pdfViewerを表示する。ページ（.pdf-page）を縦に積み、
+   通し番号・サイドノート配置（layoutSidenotes）は本文モードと完全に共通（app.js参照）。 */
+#pdfViewer { display: flex; flex-direction: column; gap: 14px; }
+#pdfViewer[hidden] { display: none; }   /* .doc-stack[hidden]と同じ理由（IDセレクタなのでなおさら必要） */
+.pdf-page {
+  position: relative; margin: 0 auto; background: #fff;
+  border: 1px solid #e2e4e9; border-radius: 4px;   /* ページの境界だけ薄い罫線で示す（唯一の罫線的許容） */
+  overflow: hidden;   /* テキストレイヤーがpercentageの丸め等でごく僅かにはみ出す場合の保険 */
+}
+.pdf-page canvas { display: block; }
+
+/* PDF.js純正のTextLayerクラスに渡すコンテナ。スパンの位置(left/top)はTextLayer側がページ幅・高さに
+   対するパーセンテージで指定してくるため、.pdf-text-layer自体の実寸（width/height）が正しいことが
+   必須。TextLayerの内部実装はその実寸をcalc(round(down, var(--total-scale-factor)*Npx, var(--scale-round-*)))
+   というCSS式で決めるので、そこで参照される3つのカスタムプロパティを.pdf-page側でJSから
+   （そのページの実際の表示スケールで）与えておく必要がある（renderPdfPage参照）。 */
+.pdf-text-layer {
+  position: absolute; inset: 0; overflow: hidden; line-height: 1; text-align: initial;
+}
+.pdf-text-layer span, .pdf-text-layer br {
+  color: transparent; position: absolute; white-space: pre; cursor: text; transform-origin: 0% 0%;
+  font-size: var(--font-height);
+}
+.pdf-text-layer ::selection { background: rgba(26,115,232,.32); }
+/* スキャンページ用に作る中身の無いテキストレイヤー（renderPdfPage参照）。誤ってクリックを
+   奪わないよう、念のため明示しておく（実際には空なので奪う対象＝spanが無く実害は無い）。 */
+.pdf-text-layer-empty { pointer-events: none; }
+/* 文字があるページでは.pdf-text-layer（さらにその上）が選択操作を担うため、.pdf-annot-layer自体は
+   クリックを素通しさせる（pointer-events:none。中の個々のマークも既に pointer-events:none）。
+   文字が無い（＝スキャン）ページだけbindScanPageInteractionが.scan-modeを付け、クリック／ドラッグの
+   受け口として自分自身を有効化する。 */
+.pdf-annot-layer { position: absolute; inset: 0; pointer-events: none; }
+.pdf-annot-layer.scan-mode { pointer-events: auto; cursor: crosshair; }
+
+/* テキストPDFのノート：本文モードの.note-numと同じ考え方（ハイライトは付けず、選択開始位置に
+   番号バッジを置くだけ）。位置は#pdfViewer全体からのpx（page-space座標×そのページのscale）。 */
+.pdf-mark-text {
+  position: absolute; transform: translate(-100%, -.2em);
+  font-size: 11px; font-weight: 700; color: #ff4b4b; background: #fff; line-height: 1;
+  padding: 1px 3px; border-radius: 3px; pointer-events: none; white-space: nowrap;
+}
+/* スキャンPDFの「クリック」ノート：文字を選択できないぶん、番号だけでなく丸いピン自体を目立たせる。 */
+.pdf-mark-point {
+  position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px;
+  border-radius: 50%; background: #ff4b4b; color: #fff; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,.35);
+}
+/* スキャンPDFの「ドラッグ」ノート：該当箇所を四角で囲み、左上角に番号バッジを乗せる。 */
+.pdf-mark-rect {
+  position: absolute; border: 2px solid #ff4b4b; border-radius: 3px;
+  background: rgba(255,75,75,.08); pointer-events: none;
+}
+.pdf-mark-rect .pdf-mark-rect-num {
+  position: absolute; left: -2px; top: -2px; transform: translateY(-100%);
+  font-size: 11px; font-weight: 700; color: #fff; background: #ff4b4b; line-height: 1;
+  padding: 1px 4px; border-radius: 3px 3px 3px 0;
+}
+/* ドラッグ中（確定前）のプレビュー矩形。確定後の.pdf-mark-rectと見分けられるよう破線にする。 */
+.pdf-drag-preview {
+  position: absolute; border: 2px dashed #ff4b4b; background: rgba(255,75,75,.08); pointer-events: none;
+}
+
 /* ── 印刷（PDF保存）専用の版面 ──
    画面のサイドノートはJSで実測した絶対座標で配置しているが、印刷はページをまたぐため使えない。
    代わりにJupyter Book（sphinx-book-theme）と同じ「float」方式にする：
@@ -313,3 +380,30 @@ body.print-active .print-aside {
    段落の外（#printDocの直接の子）として置かれる場合（画像への注釈）は今まで通りfloat:rightのみ。 */
 body.print-active .print-para .print-aside { margin-right: -48mm; }
 body.print-active #printDoc sup { font-size: .75em; color: #666; }
+
+/* ── PDFモードの印刷版面 ──
+   本文モードは「段落の右の余白へfloatで逃がす」方式だが、PDFページは1ページの中に複数の注釈が
+   バラバラの高さで乗るため、そのページ画像に対する絶対座標でサイドノートを置く（画面上の
+   レイアウトと同じ考え方）。元PDFが1ページ115mm幅に収まるようA4相当の縦横比で縮小される前提なら
+   縦もA4印刷ページの版面（257mm程度）に収まるため、ページ画像をまたいでの絶対座標のズレは起きない
+   （buildPrintDocPdf参照）。 */
+body.print-active .print-pdf-page { position: relative; width: 115mm; margin: 0 0 10pt; clear: both; }
+body.print-active .print-pdf-page-img { width: 115mm; display: block; }
+/* 印刷版面でも画面と同じ目印（番号バッジ／ピン／矩形）をページ画像の上に重ねる。 */
+body.print-active .print-pdf-mark-text {
+  position: absolute; transform: translate(-100%, -.2em);
+  font-size: 7.5pt; font-weight: 700; color: #ff4b4b; background: #fff; line-height: 1; padding: 1px 2px;
+}
+body.print-active .print-pdf-mark-point {
+  position: absolute; width: 4mm; height: 4mm; margin: -2mm 0 0 -2mm; border-radius: 50%;
+  background: #ff4b4b; color: #fff; font-size: 7pt; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+body.print-active .print-pdf-mark-rect { position: absolute; border: .5mm solid #ff4b4b; }
+body.print-active .print-pdf-mark-rect span {
+  position: absolute; left: -1px; top: -1px; transform: translateY(-100%);
+  font-size: 7pt; font-weight: 700; color: #fff; background: #ff4b4b; line-height: 1; padding: 1px 2px;
+}
+/* サイドノート本文はページ画像の右の余白（外）へ絶対座標のtopだけ変えて並べる。段落側の
+   .print-para .print-asideと違いfloatではないので、marginではなくrightのマイナス値で逃がす。 */
+body.print-active .print-pdf-page .print-aside { position: absolute; left: 100%; margin-left: 3mm; width: 48mm; float: none; }
