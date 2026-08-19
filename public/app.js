@@ -29,6 +29,9 @@ const nameBlueInput = document.getElementById("nameBlue");
 const showNamesToggle = document.getElementById("showNamesToggle");
 const helpBtn = document.getElementById("helpBtn");
 const helpPanel = document.getElementById("helpPanel");
+const introSection = document.getElementById("introSection");
+const introDismissToggle = document.getElementById("introDismissToggle");
+const showIntroToggle = document.getElementById("showIntroToggle");
 
 let anchorIdSeq = 1;
 let replyIdSeq = 1;
@@ -196,6 +199,15 @@ saveBtn.onclick = () => {
   downloadBlob(blob, filename);
   setStatus(`保存しました：${filename}`);
 };
+
+// Ctrl+S（Macはcmd+S）はブラウザ標準の「ページを保存」を横取りし、「保存」ボタンと同じ動作にする。
+// フォーカスがタイトル欄・ノート入力欄など#docの外にある時も効くよう、document全体で拾う。
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+    e.preventDefault();
+    saveBtn.click();
+  }
+});
 
 // ---- A4 PDF化（ブラウザの印刷機能を使う）----
 // 独自にPDFを組み立てるのではなく、印刷用CSSを当てた#printDocをブラウザの印刷（→PDFに保存）に渡す方式。
@@ -517,6 +529,31 @@ showNamesToggle.onchange = () => {
   try { localStorage.setItem(SHOW_NAMES_KEY, showAuthorLabel ? "1" : "0"); } catch (err) { /* noop */ }
   renumberAndLayout();
 };
+
+// 冒頭の機能説明カード（#introSection）の表示オンオフ。「次回から表示しない」（カード側）と
+// 「冒頭の機能説明を表示する」（ヘルプ側）は同じ状態を裏表で操作する2つのスイッチなので、
+// どちらを動かしても両方のチェック状態を揃える。端末の個人設定としてlocalStorageへ。
+const SHOW_INTRO_KEY = "sidenote-pdf-show-intro-v1";
+let showIntro = true;
+(function loadShowIntroDefault() {
+  try {
+    const raw = localStorage.getItem(SHOW_INTRO_KEY);
+    if (raw !== null) showIntro = raw === "1";
+  } catch (err) { /* noop */ }
+})();
+function applyShowIntro() {
+  introSection.hidden = !showIntro;
+  introDismissToggle.checked = !showIntro;
+  showIntroToggle.checked = showIntro;
+}
+function setShowIntro(value) {
+  showIntro = value;
+  try { localStorage.setItem(SHOW_INTRO_KEY, showIntro ? "1" : "0"); } catch (err) { /* noop */ }
+  applyShowIntro();
+}
+applyShowIntro();
+introDismissToggle.onchange = () => setShowIntro(!introDismissToggle.checked);
+showIntroToggle.onchange = () => setShowIntro(showIntroToggle.checked);
 
 // 「設定」「ヘルプ」は同じ開閉パターン（同じボタンをもう一度押す、または他方を開くと閉じる）。
 function toggleDropdownPanel(panelEl, btnEl) {

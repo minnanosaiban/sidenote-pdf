@@ -14,8 +14,14 @@ body {
    この枠の中に入れると長い文章をスクロールした時に枠ごと画面外へ流れて隠れてしまう
    （bodyの直下に別要素として置き、文書の最後までスクロールしても固定され続けるようにする）。 */
 .app-frame { border: 1px solid #e2e4e9; border-radius: 12px; padding: 24px 28px; max-width: 900px; margin: 0 auto 16px; }
-.hint { font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 4px; max-width: 900px; }
-.hint b { color: #31333f; }
+
+/* ── 機能説明カード（旧・箇条書きの.hintから移行） ──
+   3列×2行のカードで要点を1つずつ独立させる。カード自体の枠はapp-frameと同じ薄い罫線に揃える。 */
+.intro-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 12px; }
+.intro-card { border: 1px solid #e2e4e9; border-radius: 10px; padding: 16px 18px; font-size: 13.5px; line-height: 1.7; color: #31333f; }
+@media (max-width: 860px) {
+  .intro-grid { grid-template-columns: 1fr; }
+}
 /* 文章が長くなるとインデント等のボタンに手が届かなくなるため、ツールバーを画面上部に固定する。 */
 .toolbar-sticky {
   position: sticky; top: 8px; z-index: 20; background: #fff;
