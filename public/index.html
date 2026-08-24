@@ -13,6 +13,12 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
+<!-- 正方形寄りのプレビュー（LINE等）向けの2枚目のog:image。1枚目(大)を優先し、こちらは
+     summary型で拾われた場合の予備。OGPは複数og:imageを許容する仕様。 -->
+<meta property="og:image" content="https://sidenote-pdf.pages.dev/og-image-square.png">
+<meta property="og:image:width" content="630">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="サイドノート資料作成">
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるアプリ">
@@ -29,10 +35,10 @@
 <div class="intro" id="introSection">
   <div class="intro-grid">
     <div class="intro-card">ローカルで完結するサイドノートを置くアプリです</div>
+    <div class="intro-card">開く・保存のファイル形式は.json。.pdfも開けます</div>
     <div class="intro-card">段落にカーソルを乗せると画像の挿入・段落の削除ができます</div>
-    <div class="intro-card">テキスト・画像を選択後、入力欄でサイドノートを置きます</div>
+    <div class="intro-card">テキスト・画像・位置を選択後、入力欄でサイドノートを置きます</div>
     <div class="intro-card">サイドノートをテキスト・画像とともにPDFで書き出します</div>
-    <div class="intro-card">保存は.json形式。ファイルでのやり取りが可能です</div>
     <div class="intro-card">「Ctrl＋C」「Ctrl＋V」「Ctrl＋B」「Ctrl＋U」「Ctrl＋S」に対応</div>
   </div>
   <label class="settings-toggle">
