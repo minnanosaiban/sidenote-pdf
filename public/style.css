@@ -378,6 +378,11 @@ body.print-active .print-para {
 body.print-active .print-img { width: 115mm; max-width: 115mm; float: left; clear: both; margin: 0 0 10pt; display: block; }
 body.print-active .print-aside {
   width: 48mm; float: right; clear: right; margin: 0 0 8pt; font-size: 8.5pt; line-height: 1.6; color: #333;
+  /* 出典のURLのように区切りの無い長い文字列は、そのままだと48mmの枠からはみ出して印刷時に
+     途中で切れる（2026-09-05に実測：枠181pxに対し中身312px）。本文（.print-para）には
+     overflow-wrap: break-word があるが、画像へのサイドノートは本文の中ではなく#printDoc直下に
+     置かれるため（下のコメント参照）その指定を受け継がない。 */
+  overflow-wrap: anywhere;
 }
 /* 段落の中にインラインで埋め込まれた場合だけ、段落自身の右の余白（外）へ逃がす。画像の直後に
    段落の外（#printDocの直接の子）として置かれる場合（画像への注釈）は今まで通りfloat:rightのみ。 */
