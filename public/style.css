@@ -62,6 +62,50 @@ body {
 .dropdown-panel ul { margin: 0; padding-left: 18px; }
 .dropdown-panel li { margin-bottom: 8px; }
 .dropdown-panel li:last-child { margin-bottom: 0; }
+/* 設定・使い方どちらも先頭にタイトル＋閉じるボタンの行を置く（旧来はもう一度同じボタンを押すか
+   他方のパネルを開かないと閉じられなかったため、明示的な閉じる手段として追加）。 */
+.dropdown-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.dropdown-panel-title { font-size: 13.5px; font-weight: 700; color: #31333f; }
+.dropdown-close {
+  width: 26px; height: 26px; padding: 0; border: none; border-radius: 50%; flex: none;
+  background: #eef0f3; color: #31333f; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.dropdown-close:hover { background: #e2e4e9; color: #ff4b4b; }
+.dropdown-close .icon { width: 12px; height: 12px; }
+/* helpPanelでは.dropdown-panel-headの直後に.settings-toggleが来るため、上ではなく下に余白を持たせる
+   （旧来の:first-child基準の余白調整を、構造が変わったのでheadからの隣接セレクタに変更）。 */
+.dropdown-panel-head + .settings-toggle { margin-top: 0; margin-bottom: 14px; }
+
+/* ── 使い方（#helpPanel）はGIF・関連ツールで縦に長くなるため、設定と違って画面中央に
+   大きく開くモーダルにする（設定＝ボタン直下の小さい吹き出しのまま）。
+   位置はtoggleDropdownPanelのrect計算を通さない専用のopenHelpPanel()で開くため、
+   JSがstyle.top/leftを書き込まず、ここでのtop/left/transformがそのまま効く。 */
+#helpBackdrop {
+  position: fixed; inset: 0; z-index: 54; background: rgba(0,0,0,.45);
+}
+#helpBackdrop[hidden] { display: none; }
+#helpPanel {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 600px; max-width: calc(100vw - 48px); max-height: 82vh; overflow-y: auto;
+}
+/* GIFはブラウザ操作の実演（音声なし）。カードのような枠を付けて、文章と地続きにならないようにする。 */
+.help-gif {
+  display: block; width: 100%; max-width: 460px; margin: 8px 0 0; border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.2);
+}
+/* ── 関連ツール（派生アプリへの案内） ──
+   罫線ではなく淡い背景のカードで区切る（このファイル全体の方針を踏襲）。 */
+.related-tools { margin-top: 20px; }
+.related-tools-title { font-size: 12.5px; font-weight: 700; color: #6b6f76; margin-bottom: 8px; }
+.related-tool-card {
+  display: block; padding: 10px 12px; border-radius: 8px; background: #f7f7f9;
+  text-decoration: none; color: inherit; margin-bottom: 8px;
+}
+.related-tool-card:last-child { margin-bottom: 0; }
+.related-tool-card:hover { background: #eef0f3; }
+.related-tool-name { font-size: 13px; font-weight: 600; color: #31333f; }
+.related-tool-desc { font-size: 12px; color: #6b6f76; margin-top: 2px; line-height: 1.5; }
 .settings-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .settings-row:last-child { margin-bottom: 0; }
 .settings-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
@@ -80,9 +124,6 @@ body {
   font-size: 12.5px; color: #31333f; cursor: pointer;
 }
 .settings-toggle input { flex: none; }
-/* helpPanelでは.settings-toggleを先頭（<ul>より上）に置くため、上ではなく下に余白を持たせる
-   （settingsPanelでは最後の要素として使うため、そちらは上のmargin-top:14pxのままでよい）。 */
-.dropdown-panel > .settings-toggle:first-child { margin-top: 0; margin-bottom: 14px; }
 
 /* ── ヘルプアイコン（Streamlitのhelp=に相当・現在は未使用だが今後の説明表示用に残す）──
    標準のtitle属性は「どこにカーソルを置けば説明が出るか」が画面から分からず見落とされやすいため、

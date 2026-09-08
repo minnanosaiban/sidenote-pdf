@@ -24,11 +24,14 @@ const resumeApplyBtn = document.getElementById("resumeApply");
 const resumeDiscardBtn = document.getElementById("resumeDiscard");
 const settingsBtn = document.getElementById("settingsBtn");
 const settingsPanel = document.getElementById("settingsPanel");
+const settingsClose = document.getElementById("settingsClose");
 const nameBlackInput = document.getElementById("nameBlack");
 const nameBlueInput = document.getElementById("nameBlue");
 const showNamesToggle = document.getElementById("showNamesToggle");
 const helpBtn = document.getElementById("helpBtn");
 const helpPanel = document.getElementById("helpPanel");
+const helpClose = document.getElementById("helpClose");
+const helpBackdrop = document.getElementById("helpBackdrop");
 const introSection = document.getElementById("introSection");
 const introDismissToggle = document.getElementById("introDismissToggle");
 const showIntroToggle = document.getElementById("showIntroToggle");
@@ -627,10 +630,11 @@ applyShowIntro();
 introDismissToggle.onchange = () => setShowIntro(!introDismissToggle.checked);
 showIntroToggle.onchange = () => setShowIntro(showIntroToggle.checked);
 
-// 「設定」「ヘルプ」は同じ開閉パターン（同じボタンをもう一度押す、または他方を開くと閉じる）。
+// 「設定」はボタン直下に開く小さい吹き出し（同じボタンをもう一度押す、他方を開く、閉じるボタンで閉じる）。
 function toggleDropdownPanel(panelEl, btnEl) {
   const opening = panelEl.hidden;
   document.querySelectorAll(".dropdown-panel").forEach((el) => { el.hidden = true; });
+  helpBackdrop.hidden = true;
   closePopover();
   if (!opening) return;
   const rect = btnEl.getBoundingClientRect();
@@ -639,11 +643,28 @@ function toggleDropdownPanel(panelEl, btnEl) {
   panelEl.style.left = `${window.scrollX + rect.left}px`;
 }
 settingsBtn.onclick = () => toggleDropdownPanel(settingsPanel, settingsBtn);
-helpBtn.onclick = () => toggleDropdownPanel(helpPanel, helpBtn);
+settingsClose.onclick = () => { settingsPanel.hidden = true; };
+
+// 「使い方」（ヘルプ）はGIF・関連ツールで縦に長くなるため、設定と違って画面中央の大きいモーダルにする
+// （style.cssの#helpPanelがposition:fixedでtop/left/transformを指定しているので、toggleDropdownPanelの
+// ようにJSでstyle.top/leftを書き込んではいけない＝専用の開閉関数にする）。
+function openHelpPanel() {
+  document.querySelectorAll(".dropdown-panel").forEach((el) => { el.hidden = true; });
+  closePopover();
+  helpPanel.hidden = false;
+  helpBackdrop.hidden = false;
+}
+function closeHelpPanel() {
+  helpPanel.hidden = true;
+  helpBackdrop.hidden = true;
+}
+helpBtn.onclick = () => { if (helpPanel.hidden) openHelpPanel(); else closeHelpPanel(); };
+helpClose.onclick = closeHelpPanel;
+helpBackdrop.onclick = closeHelpPanel;   // 背景クリックでも閉じる
 
 function openPopover(rect) {
   settingsPanel.hidden = true;
-  helpPanel.hidden = true;
+  closeHelpPanel();
   popoverInput.value = "";
   popoverEl.hidden = false;
   updateColorPickerSelection();

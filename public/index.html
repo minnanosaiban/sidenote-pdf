@@ -27,7 +27,7 @@
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるツール">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
 <!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=30">
+<link rel="stylesheet" href="style.css?v=31">
 </head>
 <body>
 
@@ -58,7 +58,7 @@
 <div class="toolbar-sticky">
 <div class="toolbar">
   <button id="settingsBtn" type="button">設定</button>
-  <button id="helpBtn" type="button">ヘルプ</button>
+  <button id="helpBtn" type="button">使い方</button>
   <button id="resumeDiscard" type="button">新しい作業</button>
   <button id="resumeApply" type="button" disabled>続きから再開</button>
   <label class="filebtn2" title="保存した.jsonファイル、またはPDFファイルを開く">
@@ -84,7 +84,14 @@
 </div>
 <div id="saveStatus"></div>
 
+<!-- 設定・使い方共通の×アイコン（para-hover-delと同じBootstrap Iconsのパス）。 -->
 <div class="dropdown-panel" id="settingsPanel" hidden>
+  <div class="dropdown-panel-head">
+    <span class="dropdown-panel-title">設定</span>
+    <button type="button" class="dropdown-close" id="settingsClose" aria-label="閉じる">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
+    </button>
+  </div>
   <div class="settings-row">
     <span class="settings-dot" data-color="black"></span>
     <input id="nameBlack" type="text" maxlength="12" placeholder="自分">
@@ -103,21 +110,52 @@
   </label>
 </div>
 
+<!-- ヘルプ（＝「使い方」）は文章量が多く、GIF・関連ツールも入るため、設定と違い画面中央に大きく開く
+     モーダル状にする（#helpBackdropはbody直下、doc-wrapの直前に配置）。 -->
 <div class="dropdown-panel" id="helpPanel" hidden>
+  <div class="dropdown-panel-head">
+    <span class="dropdown-panel-title">使い方</span>
+    <button type="button" class="dropdown-close" id="helpClose" aria-label="閉じる">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
+    </button>
+  </div>
   <label class="settings-toggle">
     <input type="checkbox" id="showIntroToggle">
     冒頭の機能説明を表示する
   </label>
   <ul>
-    <li>段落にカーソルを乗せると、右側に「＋画像」「×削除」のアイコンが出ます。「＋画像」はその段落の直後に画像を挿入、「×削除」はその段落（画像の場合はその1枚）だけを消します。</li>
-    <li>「開く」でPDFファイルを選ぶと、そのPDFにサイドノートを付けるモードになります。文字が選択できるPDFは範囲選択、スキャンなど文字が選択できないPDFはクリックまたはドラッグでノートの位置を指定します。</li>
+    <li>
+      テキスト・画像・注釈したい範囲を選択すると入力欄が出ます。コメントを書いて色（自分／共有相手／重要）を選ぶと、右側にサイドノートが付きます。同じ範囲に「＋ 返信」で追記もできます。
+      <img class="help-gif" src="help-annotate.gif" alt="テキストを選択してサイドノートを追加する例" loading="lazy">
+    </li>
+    <li>
+      段落にカーソルを乗せると、右側に「＋画像」「×削除」のアイコンが出ます。「＋画像」はその段落の直後に画像を挿入、「×削除」はその段落（画像の場合はその1枚）だけを消します。
+      <img class="help-gif" src="help-block.gif" alt="段落ホバーで画像を挿入・削除する例" loading="lazy">
+    </li>
+    <li>
+      「開く」でPDFファイルを選ぶと、そのPDFにサイドノートを付けるモードになります。文字が選択できるPDFは範囲選択、スキャンなど文字が選択できないPDFはクリックまたはドラッグでノートの位置を指定します。
+      <img class="help-gif" src="help-pdf-drag.gif" alt="スキャンPDFへドラッグでノート位置を指定する例" loading="lazy">
+    </li>
     <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像・PDF本体も内包されます）。</li>
     <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
     <li>「新しい作業」は本文・ノート・画像・タイトルを全て消して、別の案件を新規に始めます。</li>
     <li>「PDF化」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
     <li>Ctrl＋Sでも「保存」と同じ動作（.json書き出し）になります。</li>
   </ul>
+  <!-- 派生アプリ（文書作成版／Markdown版）への案内。origami-pdf.comの「関連ツール」を参考にしたカード形式。 -->
+  <div class="related-tools">
+    <div class="related-tools-title">関連ツール</div>
+    <a class="related-tool-card" href="https://sidenote-pdf-doc.pages.dev/" target="_blank" rel="noopener">
+      <div class="related-tool-name">サイドノート作成（文書作成版）</div>
+      <div class="related-tool-desc">自分で準備書面等の文書を組み立てながら、サイドノートで検討メモも残せる版</div>
+    </a>
+    <a class="related-tool-card" href="https://sidenote-pdf-md.pages.dev/" target="_blank" rel="noopener">
+      <div class="related-tool-name">サイドノート作成（Markdown版）</div>
+      <div class="related-tool-desc">AIチャットが出力したMarkdownを好みのデザインで表示し、サイドノートを付けられる版</div>
+    </a>
+  </div>
 </div>
+<div id="helpBackdrop" hidden></div>
 
 <div class="doc-wrap">
   <div class="doc-left">
@@ -165,6 +203,6 @@
   </div>
 </div>
 
-<script src="app.js?v=38"></script>
+<script src="app.js?v=39"></script>
 </body>
 </html>
