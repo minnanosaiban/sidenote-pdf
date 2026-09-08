@@ -30,7 +30,7 @@ def fit(draw, text, avail_w, start_size, cap=None):
 def make_square():
     size = 630
     pad_x = 30
-    line1, line2 = "サイドノート", "資料作成"
+    line1, line2 = "サイドノート", "作成"
 
     scratch = ImageDraw.Draw(Image.new("RGB", (10, 10)))
     avail_w = size - 2 * pad_x
@@ -61,7 +61,7 @@ def make_square():
 def make_large():
     w, h = 1200, 630
     pad_x_title, pad_x_sub, gap = 90, 90, 40
-    title = "サイドノート資料作成"
+    title = "サイドノート作成"
     subtitle = "文章やスクショにサイドノートを書き込んでPDFにできるツール"
 
     scratch = ImageDraw.Draw(Image.new("RGB", (10, 10)))
