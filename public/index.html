@@ -27,52 +27,105 @@
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるツール">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
 <!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=31">
+<link rel="stylesheet" href="style.css?v=32">
 </head>
 <body>
 
-<div class="app-frame">
-<h1 class="app-title">サイドノート作成</h1>
-<!-- 機能説明はカード形式（旧・箇条書きの.hintから移行）。「次回から表示しない」で#introSection
-     ごと隠し、再表示はヘルプパネル内のチェックボックスから行う（showIntro、localStorageで永続化）。 -->
-<div class="intro" id="introSection">
-  <div class="intro-grid">
-    <div class="intro-card">ローカルで完結するサイドノートを置くツールです</div>
-    <div class="intro-card">開く・保存のファイル形式は.json。.pdfも開けます</div>
-    <div class="intro-card">段落にカーソルを乗せると画像の挿入・段落の削除ができます</div>
-    <div class="intro-card">テキスト・画像・位置を選択後、入力欄でサイドノートを置きます</div>
-    <div class="intro-card">サイドノートをテキスト・画像とともにPDFで書き出します</div>
-    <div class="intro-card">「Ctrl＋C」「Ctrl＋V」「Ctrl＋B」「Ctrl＋U」「Ctrl＋S」に対応</div>
-  </div>
-  <label class="settings-toggle">
-    <input type="checkbox" id="introDismissToggle">
-    次回から表示しない
-  </label>
-</div>
-</div>
+<!-- ============================================================
+     トップのヒーロー（2026-09-10、templex.jpのデザインを踏襲して新設）。
+     左＝バッジ＋見出し＋説明文＋ボタン1つ（使い方はhelp.htmlという別ドキュメントに分離）。
+     右＝アプリのイメージ図（本文＋サイドノートの2カラムをブラウザ枠で再現）と、
+     派生アプリ3枚（文書作成版／ウェブページ版［近日公開］／Markdown版）。
+     ============================================================ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <span class="hero-badge">ブラウザ完結・サイドノートツール</span>
+      <h1 class="hero-title">ありそうで無かった<br>サイドノート作成ツール</h1>
+      <p class="hero-desc">文章やスクリーンショットの資料に、右側のサイドノートで注釈を付けていくツールです。処理はすべてブラウザ内で完結し、内容はサーバーに送信されません。</p>
+      <a class="btn-outline hero-cta" href="help.html">使い方を読む</a>
+    </div>
 
-<!-- ツールバーは.app-frameの外（bodyの直下）に出す。position:stickyは自分の親の高さまでしか
-     効かないため、.app-frame（タイトル＋説明文のみ）の中に入れたままだと、長い文章をスクロールした
-     時に親ごと画面外へ流れてツールバーが隠れてしまう。bodyの直下に出すことで文書の最後までスクロール
-     しても常に画面上部に固定され続ける。 -->
+    <div class="hero-right">
+      <!-- アプリのイメージ図：このアプリ自身の2カラム（本文＋サイドノート）のミニ再現。 -->
+      <div class="browser-mock" aria-hidden="true">
+        <div class="browser-mock-bar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="browser-mock-url">sidenote-pdf.pages.dev</span>
+        </div>
+        <div class="browser-mock-body">
+          <div class="mock-paper">
+            <div class="mock-doc">
+              <div class="mock-line" style="width:92%"></div>
+              <div class="mock-line" style="width:78%"></div>
+              <div class="mock-line-noted">
+                <span class="mock-note-num">1</span>
+                <span class="mock-line-inline" style="width:60%"></span>
+              </div>
+              <div class="mock-line" style="width:85%"></div>
+              <div class="mock-line-noted">
+                <span class="mock-note-num">2</span>
+                <span class="mock-line-inline" style="width:40%"></span>
+              </div>
+              <div class="mock-line" style="width:70%"></div>
+            </div>
+            <div class="mock-side">
+              <div class="mock-note">
+                <span class="mock-note-num">1</span>
+                <span class="mock-note-text"></span>
+              </div>
+              <div class="mock-note mock-note-important">
+                <span class="mock-note-num">2</span>
+                <span class="mock-note-text"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 派生アプリ3枚（文書作成版 / ウェブページ版[近日公開] / Markdown版）。
+           ウェブページ版は2026-09-10時点でまだ存在しないため、リンク無効のまま「近日公開」を表示する。 -->
+      <div class="related-row-label">派生のツールもあります</div>
+      <div class="related-row">
+        <a class="related-card" href="https://sidenote-pdf-doc.pages.dev/" target="_blank" rel="noopener">
+          <div class="related-card-name">文書作成版<svg class="related-card-arrow" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.146 3.146a.5.5 0 0 1 .708 0l4.5 4.5a.5.5 0 0 1 0 .708l-4.5 4.5a.5.5 0 0 1-.708-.708L11.793 8 8.146 4.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 2 8z"/></svg></div>
+          <div class="related-card-desc">文書を組み立てながら検討メモも残せる版</div>
+        </a>
+        <div class="related-card related-card-soon" aria-disabled="true">
+          <div class="related-card-name">ウェブページ版 <span class="soon-badge">近日公開</span></div>
+          <div class="related-card-desc">作成したサイドノートをそのままウェブページとして公開できる版</div>
+        </div>
+        <a class="related-card" href="https://sidenote-pdf-md.pages.dev/" target="_blank" rel="noopener">
+          <div class="related-card-name">Markdown版<svg class="related-card-arrow" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.146 3.146a.5.5 0 0 1 .708 0l4.5 4.5a.5.5 0 0 1 0 .708l-4.5 4.5a.5.5 0 0 1-.708-.708L11.793 8 8.146 4.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 2 8z"/></svg></div>
+          <div class="related-card-desc">AIチャットのMarkdown出力に注釈を付けられる版</div>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ツールバーはbodyの直下に出す。position:stickyは自分の親の高さまでしか
+     効かないため、長い文章をスクロールした時に親ごと画面外へ流れてツールバーが隠れてしまう
+     ことのないよう、bodyの直下に出して文書の最後までスクロールしても常に画面上部に固定され続けるようにする。 -->
 <div class="toolbar-sticky">
 <div class="toolbar">
-  <button id="settingsBtn" type="button">設定</button>
-  <button id="helpBtn" type="button">使い方</button>
-  <button id="resumeDiscard" type="button">新しい作業</button>
-  <button id="resumeApply" type="button" disabled>続きから再開</button>
-  <label class="filebtn2" title="保存した.jsonファイル、またはPDFファイルを開く">
+  <button id="settingsBtn" type="button" class="btn-outline">設定</button>
+  <button id="resumeDiscard" type="button" class="btn-outline">新しい作業</button>
+  <button id="resumeApply" type="button" class="btn-outline" disabled>続きから再開</button>
+  <label class="filebtn2 btn-outline" title="保存した.jsonファイル、またはPDFファイルを開く">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v.64c.57.265.94.876.856 1.546l-.64 5.124A2.5 2.5 0 0 1 12.733 15H3.266a2.5 2.5 0 0 1-2.481-2.19l-.64-5.124A1.5 1.5 0 0 1 1 6.14zM2 6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5a.5.5 0 0 0-.5.5zm-.367 1a.5.5 0 0 0-.496.562l.64 5.124A1.5 1.5 0 0 0 3.266 14h9.468a1.5 1.5 0 0 0 1.489-1.314l.64-5.124A.5.5 0 0 0 14.367 7z"/></svg>
     開く
     <!-- .json（続きから編集）と.pdf（新規にPDFへ注釈を付け始める）の両方をここで受け付け、
          拡張子でJS側（loadInput.onchange）が処理を振り分ける（ボタンは増やさない方針）。 -->
     <input id="loadInput" type="file" accept="application/json,.json,application/pdf,.pdf">
   </label>
-  <button id="saveBtn" type="button" title="今の内容を.jsonファイルとして保存">
+  <button id="saveBtn" type="button" class="btn-primary" title="今の内容を.jsonファイルとして保存">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H9.5a1 1 0 0 0-1 1v4.5h2a.5.5 0 0 1 .354.854l-2.5 2.5a.5.5 0 0 1-.708 0l-2.5-2.5A.5.5 0 0 1 5.5 6.5h2V2a2 2 0 0 1 2-2H14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h2.5a.5.5 0 0 1 0 1z"/></svg>
     保存
   </button>
-  <button id="savePdfBtn" type="button" title="A4のPDFとして保存（印刷ダイアログが開くので、保存先で「PDFに保存」を選んでください）">
+  <button id="savePdfBtn" type="button" class="btn-primary" title="A4のPDFとして保存（印刷ダイアログが開くので、保存先で「PDFに保存」を選んでください）">
     <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM1.6 11.85H0v3.999h.791v-1.342h.803q.43 0 .732-.173.305-.175.463-.474a1.4 1.4 0 0 0 .161-.677q0-.375-.158-.677a1.2 1.2 0 0 0-.46-.477q-.3-.18-.732-.179m.545 1.333a.8.8 0 0 1-.085.38.57.57 0 0 1-.238.241.8.8 0 0 1-.375.082H.788V12.48h.66q.327 0 .512.181.185.183.185.522m1.217-1.333v3.999h1.46q.602 0 .998-.237a1.45 1.45 0 0 0 .595-.689q.196-.45.196-1.084 0-.63-.196-1.075a1.43 1.43 0 0 0-.589-.68q-.396-.234-1.005-.234zm.791.645h.563q.371 0 .609.152a.9.9 0 0 1 .354.454q.118.302.118.753a2.3 2.3 0 0 1-.068.592 1.1 1.1 0 0 1-.196.422.8.8 0 0 1-.334.252 1.3 1.3 0 0 1-.483.082h-.563zm3.743 1.763v1.591h-.79V11.85h2.548v.653H7.896v1.117h1.606v.638z"/></svg>
     PDF化
   </button>
@@ -80,11 +133,12 @@
 </div>
 
 <div class="title-row">
-  <input id="titleInput" type="text" placeholder="タイトル（例：資料A、〇〇案件メモ）※「sidenote-資料A-20260819-2306.json」と保存されます">
+  <div class="title-label">タイトル</div>
+  <input id="titleInput" type="text" placeholder="例：資料A、〇〇案件メモ　※「sidenote-資料A-20260819-2306.json」と保存されます">
 </div>
 <div id="saveStatus"></div>
 
-<!-- 設定・使い方共通の×アイコン（para-hover-delと同じBootstrap Iconsのパス）。 -->
+<!-- 設定の×アイコン（para-hover-delと同じBootstrap Iconsのパス）。 -->
 <div class="dropdown-panel" id="settingsPanel" hidden>
   <div class="dropdown-panel-head">
     <span class="dropdown-panel-title">設定</span>
@@ -109,53 +163,6 @@
     サイドノートに名前（自分／共有相手／重要）を表示する
   </label>
 </div>
-
-<!-- ヘルプ（＝「使い方」）は文章量が多く、GIF・関連ツールも入るため、設定と違い画面中央に大きく開く
-     モーダル状にする（#helpBackdropはbody直下、doc-wrapの直前に配置）。 -->
-<div class="dropdown-panel" id="helpPanel" hidden>
-  <div class="dropdown-panel-head">
-    <span class="dropdown-panel-title">使い方</span>
-    <button type="button" class="dropdown-close" id="helpClose" aria-label="閉じる">
-      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/></svg>
-    </button>
-  </div>
-  <label class="settings-toggle">
-    <input type="checkbox" id="showIntroToggle">
-    冒頭の機能説明を表示する
-  </label>
-  <ul>
-    <li>
-      テキスト・画像・注釈したい範囲を選択すると入力欄が出ます。コメントを書いて色（自分／共有相手／重要）を選ぶと、右側にサイドノートが付きます。同じ範囲に「＋ 返信」で追記もできます。
-      <img class="help-gif" src="help-annotate.gif" alt="テキストを選択してサイドノートを追加する例" loading="lazy">
-    </li>
-    <li>
-      段落にカーソルを乗せると、右側に「＋画像」「×削除」のアイコンが出ます。「＋画像」はその段落の直後に画像を挿入、「×削除」はその段落（画像の場合はその1枚）だけを消します。
-      <img class="help-gif" src="help-block.gif" alt="段落ホバーで画像を挿入・削除する例" loading="lazy">
-    </li>
-    <li>
-      「開く」でPDFファイルを選ぶと、そのPDFにサイドノートを付けるモードになります。文字が選択できるPDFは範囲選択、スキャンなど文字が選択できないPDFはクリックまたはドラッグでノートの位置を指定します。
-      <img class="help-gif" src="help-pdf-drag.gif" alt="スキャンPDFへドラッグでノート位置を指定する例" loading="lazy">
-    </li>
-    <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像・PDF本体も内包されます）。</li>
-    <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
-    <li>「新しい作業」は本文・ノート・画像・タイトルを全て消して、別の案件を新規に始めます。</li>
-    <li>「PDF化」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
-    <li>Ctrl＋Sでも「保存」と同じ動作（.json書き出し）になります。</li>
-  </ul>
-  <!-- 派生アプリ（文書作成版／Markdown版）への案内。origami-pdf.comの「関連ツール」を参考にしたカード形式。 -->
-  <div class="related-tools">
-    <div class="related-tools-title">関連ツール</div>
-    <a class="related-tool-card" href="https://sidenote-pdf-doc.pages.dev/" target="_blank" rel="noopener">
-      <div class="related-tool-name">サイドノート作成（文書作成版）</div>
-      <div class="related-tool-desc">自分で準備書面等の文書を組み立てながら、サイドノートで検討メモも残せる版</div>
-    </a>
-    <a class="related-tool-card" href="https://sidenote-pdf-md.pages.dev/" target="_blank" rel="noopener">
-      <div class="related-tool-name">サイドノート作成（Markdown版）</div>
-      <div class="related-tool-desc">AIチャットが出力したMarkdownを好みのデザインで表示し、サイドノートを付けられる版</div>
-    </a>
-  </div>
-</div>
-<div id="helpBackdrop" hidden></div>
 
 <div class="doc-wrap">
   <div class="doc-left">
@@ -203,6 +210,6 @@
   </div>
 </div>
 
-<script src="app.js?v=39"></script>
+<script src="app.js?v=40"></script>
 </body>
 </html>

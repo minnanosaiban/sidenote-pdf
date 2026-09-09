@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>使い方 - サイドノート作成</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<!-- ?v=NUM はキャッシュ対策。style.css/help.cssを直す度に、直したファイルの番号だけ+1する。 -->
+<link rel="stylesheet" href="style.css?v=32">
+<link rel="stylesheet" href="help.css?v=1">
+</head>
+<body>
+
+<div class="help-page">
+  <a class="btn-outline help-back" href="index.html">← サイドノート作成に戻る</a>
+  <h1>使い方</h1>
+  <p class="help-lead">文章やスクリーンショットの資料に、右側のサイドノートで注釈を付けていく手順です。</p>
+
+  <ol class="help-steps">
+    <li>
+      テキスト・画像・注釈したい範囲を選択すると入力欄が出ます。コメントを書いて色（自分／共有相手／重要）を選ぶと、右側にサイドノートが付きます。同じ範囲に「＋ 返信」で追記もできます。
+      <img class="help-gif" src="help-annotate.gif" alt="テキストを選択してサイドノートを追加する例" loading="lazy">
+    </li>
+    <li>
+      段落にカーソルを乗せると、右側に「＋画像」「×削除」のアイコンが出ます。「＋画像」はその段落の直後に画像を挿入、「×削除」はその段落（画像の場合はその1枚）だけを消します。
+      <img class="help-gif" src="help-block.gif" alt="段落ホバーで画像を挿入・削除する例" loading="lazy">
+    </li>
+    <li>
+      「開く」でPDFファイルを選ぶと、そのPDFにサイドノートを付けるモードになります。文字が選択できるPDFは範囲選択、スキャンなど文字が選択できないPDFはクリックまたはドラッグでノートの位置を指定します。
+      <img class="help-gif" src="help-pdf-drag.gif" alt="スキャンPDFへドラッグでノート位置を指定する例" loading="lazy">
+    </li>
+  </ol>
+
+  <div class="help-section-title">その他の操作</div>
+  <ul class="help-list">
+    <li>保存はタイトル＋日時付きの.jsonファイルに書き出します（画像・PDF本体も内包されます）。</li>
+    <li>「続きから再開」はブラウザ内の自動保存を読み込みます（.json保存とは別物で、この端末・このブラウザでのみ有効です）。</li>
+    <li>「新しい作業」は本文・ノート・画像・タイトルを全て消して、別の案件を新規に始めます。</li>
+    <li>「PDF化」は印刷ダイアログを開きます。保存先（プリンター）で「PDFに保存」を選んでください。</li>
+    <li>Ctrl＋Sでも「保存」と同じ動作（.json書き出し）になります。</li>
+  </ul>
+
+  <a class="btn-outline help-back" href="index.html" style="margin-bottom:0">← サイドノート作成に戻る</a>
+</div>
+
+</body>
+</html>

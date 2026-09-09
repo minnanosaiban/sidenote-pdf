@@ -28,13 +28,6 @@ const settingsClose = document.getElementById("settingsClose");
 const nameBlackInput = document.getElementById("nameBlack");
 const nameBlueInput = document.getElementById("nameBlue");
 const showNamesToggle = document.getElementById("showNamesToggle");
-const helpBtn = document.getElementById("helpBtn");
-const helpPanel = document.getElementById("helpPanel");
-const helpClose = document.getElementById("helpClose");
-const helpBackdrop = document.getElementById("helpBackdrop");
-const introSection = document.getElementById("introSection");
-const introDismissToggle = document.getElementById("introDismissToggle");
-const showIntroToggle = document.getElementById("showIntroToggle");
 const docStackEl = document.getElementById("docStack");
 const docLabelEl = document.getElementById("docLabel");
 const pdfViewerEl = document.getElementById("pdfViewer");
@@ -605,36 +598,10 @@ showNamesToggle.onchange = () => {
   renumberAndLayout();
 };
 
-// 冒頭の機能説明カード（#introSection）の表示オンオフ。「次回から表示しない」（カード側）と
-// 「冒頭の機能説明を表示する」（ヘルプ側）は同じ状態を裏表で操作する2つのスイッチなので、
-// どちらを動かしても両方のチェック状態を揃える。端末の個人設定としてlocalStorageへ。
-const SHOW_INTRO_KEY = "sidenote-pdf-show-intro-v1";
-let showIntro = true;
-(function loadShowIntroDefault() {
-  try {
-    const raw = localStorage.getItem(SHOW_INTRO_KEY);
-    if (raw !== null) showIntro = raw === "1";
-  } catch (err) { /* noop */ }
-})();
-function applyShowIntro() {
-  introSection.hidden = !showIntro;
-  introDismissToggle.checked = !showIntro;
-  showIntroToggle.checked = showIntro;
-}
-function setShowIntro(value) {
-  showIntro = value;
-  try { localStorage.setItem(SHOW_INTRO_KEY, showIntro ? "1" : "0"); } catch (err) { /* noop */ }
-  applyShowIntro();
-}
-applyShowIntro();
-introDismissToggle.onchange = () => setShowIntro(!introDismissToggle.checked);
-showIntroToggle.onchange = () => setShowIntro(showIntroToggle.checked);
-
 // 「設定」はボタン直下に開く小さい吹き出し（同じボタンをもう一度押す、他方を開く、閉じるボタンで閉じる）。
 function toggleDropdownPanel(panelEl, btnEl) {
   const opening = panelEl.hidden;
   document.querySelectorAll(".dropdown-panel").forEach((el) => { el.hidden = true; });
-  helpBackdrop.hidden = true;
   closePopover();
   if (!opening) return;
   const rect = btnEl.getBoundingClientRect();
@@ -645,26 +612,8 @@ function toggleDropdownPanel(panelEl, btnEl) {
 settingsBtn.onclick = () => toggleDropdownPanel(settingsPanel, settingsBtn);
 settingsClose.onclick = () => { settingsPanel.hidden = true; };
 
-// 「使い方」（ヘルプ）はGIF・関連ツールで縦に長くなるため、設定と違って画面中央の大きいモーダルにする
-// （style.cssの#helpPanelがposition:fixedでtop/left/transformを指定しているので、toggleDropdownPanelの
-// ようにJSでstyle.top/leftを書き込んではいけない＝専用の開閉関数にする）。
-function openHelpPanel() {
-  document.querySelectorAll(".dropdown-panel").forEach((el) => { el.hidden = true; });
-  closePopover();
-  helpPanel.hidden = false;
-  helpBackdrop.hidden = false;
-}
-function closeHelpPanel() {
-  helpPanel.hidden = true;
-  helpBackdrop.hidden = true;
-}
-helpBtn.onclick = () => { if (helpPanel.hidden) openHelpPanel(); else closeHelpPanel(); };
-helpClose.onclick = closeHelpPanel;
-helpBackdrop.onclick = closeHelpPanel;   // 背景クリックでも閉じる
-
 function openPopover(rect) {
   settingsPanel.hidden = true;
-  closeHelpPanel();
   popoverInput.value = "";
   popoverEl.hidden = false;
   updateColorPickerSelection();

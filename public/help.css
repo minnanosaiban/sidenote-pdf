@@ -1,0 +1,28 @@
+/* help.html（使い方ページ）専用のレイアウト。
+   トークン（色・角丸・影）や.btn-outline/.help-gifはstyle.cssを先に読み込んで共有する
+   （このファイルはページ固有のレイアウトだけを持つ）。 */
+.help-page { max-width: 640px; margin: 0 auto; padding: 40px 40px 80px; }
+.help-back { display: inline-flex; margin-bottom: 28px; }
+.help-page h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; color: var(--tx-text); }
+.help-page > .help-lead { font-size: 14.5px; color: var(--tx-muted); margin: 0 0 32px; line-height: 1.8; }
+
+.help-steps { list-style: none; margin: 0 0 36px; padding: 0; counter-reset: help-step; }
+.help-steps > li {
+  counter-increment: help-step; position: relative; padding-left: 34px; margin-bottom: 28px;
+  font-size: 14.5px; line-height: 1.8; color: var(--tx-text);
+}
+.help-steps > li:last-child { margin-bottom: 0; }
+.help-steps > li::before {
+  content: counter(help-step); position: absolute; left: 0; top: 0; width: 24px; height: 24px;
+  border-radius: 50%; background: var(--tx-text); color: #fff; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.help-list { margin: 0 0 36px; padding-left: 20px; font-size: 14px; line-height: 1.9; color: var(--tx-text); }
+.help-list li { margin-bottom: 6px; }
+
+.help-section-title { font-size: 12px; font-weight: 700; color: var(--tx-muted-2); margin: 0 0 12px; }
+
+@media (max-width: 600px) {
+  .help-page { padding: 28px 20px 60px; }
+}
