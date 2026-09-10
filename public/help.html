@@ -6,7 +6,7 @@
 <title>使い方 - サイドノート作成</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <!-- ?v=NUM はキャッシュ対策。style.css/help.cssを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=36">
+<link rel="stylesheet" href="style.css?v=37">
 <link rel="stylesheet" href="help.css?v=2">
 </head>
 <body>
@@ -22,6 +22,7 @@
     <li><a href="#common">基本の使い方（3つの版に共通）</a></li>
     <li><a href="#doc">書面レイアウト版だけの操作</a></li>
     <li><a href="#md">Markdown読み込み版だけの操作</a></li>
+    <li><a href="#web">ウェブ用Markdown作成版だけの操作</a></li>
   </ul>
 
   <div class="help-section-title" id="common">基本の使い方（3つの版に共通）</div>
@@ -65,6 +66,16 @@
     <li>取り込みは本文を丸ごと置き換えます（必要なら先に「保存」しておいてください）。先頭の見出し（#）はタイトル欄に入ります。本文中に直接Ctrl+Vで貼り付けたテキストは、Markdown記法としては解釈されずそのまま入ります。</li>
     <li>「デザイン」で本文の見た目を5種類（エディトリアル／文書＝ミニマル／フラット／ダークUI／和モダン）から切り替えられます。切り替えても本文・注釈の中身は変わりません。</li>
     <li>見出し・リスト項目の途中でEnterしても、常にプレーンな段落が続きます（構造の変更はできない仕様です）。</li>
+  </ul>
+
+  <div class="help-section-title" id="web">ウェブ用Markdown作成版だけの操作</div>
+  <p class="help-note">本文とサイドノートを、MkDocs・Docsify等の静的サイト用のMarkdownとして書き出す版です（<a href="https://sidenote-pdf-web.pages.dev/">ウェブ用Markdown作成版を開く</a>）。書式ツールバー・項番設定は書面レイアウト版と同じものが使えます。</p>
+  <ul class="help-list">
+    <li>「書き出し」を押すとパネルが開きます。形式は「ウェブ用（MkDocs / Docsify など）」と「hotline用（<code>:N X:</code> マーカー）」の2つから選べます。</li>
+    <li>「フォルダへ書き出す」でサイトのフォルダ（MkDocsなら<code>docs/</code>以下）を選ぶと、「タイトル.md」として直接書き込みます。初回だけフォルダ選択が出て、以後は同じ場所へ上書きするので、書き直したら押すだけで反映されます（「保存先を選び直す」で別のフォルダに切り替えられます）。</li>
+    <li>「サイドノート用のCSS（sidenote.css）も一緒に書き出す」をオンにすると、注釈を右余白へ並べるCSSが同じフォルダに書き出されます。ページ側で1回読み込んでください（MkDocsは<code>extra_css</code>、Docsifyは<code>&lt;link rel="stylesheet"&gt;</code>）。</li>
+    <li>書き出しの中身：見出し（H1〜H3）はMarkdownの<code>##</code>〜<code>####</code>、段落は<code>&lt;p class="sn-p"&gt;</code>（インデント・ぶら下げは画面と同じ値をインラインstyleで持たせます）、サイドノートは段落の直後の<code>&lt;aside class="sn-note"&gt;</code>になります。画像は書き出しに含まれません。</li>
+    <li>File System Access API非対応のブラウザ（Firefox等）では、フォルダへの直接書き込みの代わりにダウンロードになります。「本文をコピー」「CSSをコピー」でクリップボードへ取ることもできます。</li>
   </ul>
 
   <a class="btn-outline help-back" href="index.html" style="margin-bottom:0">← サイドノート作成に戻る</a>
