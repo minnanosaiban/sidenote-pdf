@@ -47,7 +47,9 @@ body {
   font-size: 38px; font-weight: 700; line-height: 1.28; letter-spacing: -.5px;
   margin: 0 0 18px; color: var(--tx-text);
 }
-.hero-desc { font-size: 15.5px; line-height: 1.8; color: var(--tx-muted); margin: 0 0 28px; max-width: 46em; }
+/* 説明文は短い1文（版名＋一言）。見出し38pxに対して小さく見えないよう22pxまで上げ、
+   幅を18emに絞って2〜3行に落として塊として読ませる。 */
+.hero-desc { font-size: 22px; line-height: 1.7; color: var(--tx-muted); margin: 0 0 28px; max-width: 18em; }
 .hero-cta { display: inline-flex; }
 
 /* ── アプリのイメージ図（ブラウザ枠） ── */
@@ -92,15 +94,19 @@ body {
    カード自体が持ち上がるようにし、静的な区切り枠と見分けやすくする。 */
 .related-card:hover { box-shadow: var(--tx-shadow-md); border-color: #d4d4d4; transform: translateY(-1px); }
 .related-card:hover .related-card-arrow { transform: translateX(2px); color: var(--tx-text); }
+/* 派生アプリ名は最長で「ウェブ用Markdown作成版」。カード幅（3列で1枚167px）に1行で収める
+   ため12pxにしている（折り返すとカードごとに高さが揃わず、行の見た目が崩れる）。 */
 .related-card-name {
-  font-size: 12.5px; font-weight: 600; color: var(--tx-text);
+  font-size: 12px; font-weight: 600; color: var(--tx-text);
   display: flex; align-items: center; justify-content: space-between; gap: 6px;
 }
 .related-card-arrow { width: 13px; height: 13px; flex: none; color: var(--tx-muted-2); transition: transform .15s, color .15s; }
 .related-card-desc { font-size: 11.5px; color: var(--tx-muted-2); margin-top: 4px; line-height: 1.6; }
 .related-card-soon { background: #fafafa; }
 .related-card-soon .related-card-name, .related-card-soon .related-card-desc { color: #a3a3a3; }
+/* 名前の行ではなく説明の下に置く（名前の行に同居させると名前が折り返す）。 */
 .soon-badge {
+  display: inline-block; margin-top: 8px;
   font-size: 10px; font-weight: 500; color: var(--tx-muted-2); background: #f2f2f2;
   border-radius: 999px; padding: 1px 8px;
 }
@@ -119,6 +125,13 @@ body {
 /* ツールバーのボタンはラベルの長さに関わらず幅を揃える（旧デザインの踏襲）。
    幅は最長ラベル「続きから再開」に合わせる。6個×118px+gap8pxで900px幅に収まる。 */
 .toolbar .btn-outline, .toolbar .btn-primary, .toolbar .filebtn2 { width: 118px; }
+/* カードは3枚横並びのまま。ノートPCの幅（〜1250px）では1枚160px前後まで痩せるので、
+   文字と内側の余白だけ少し詰めて長い名前を収める。 */
+@media (max-width: 1250px) {
+  .related-card { padding: 10px 11px; }
+  .related-card-name { font-size: 11.5px; }
+  .related-card-desc { font-size: 11px; }
+}
 @media (max-width: 860px) {
   .hero-inner { grid-template-columns: 1fr; gap: 32px; }
   .related-row { grid-template-columns: 1fr; }

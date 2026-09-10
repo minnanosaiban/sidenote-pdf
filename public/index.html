@@ -27,22 +27,22 @@
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるツール">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
 <!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=32">
+<link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
 
 <!-- ============================================================
      トップのヒーロー（2026-09-10、templex.jpのデザインを踏襲して新設）。
-     左＝バッジ＋見出し＋説明文＋ボタン1つ（使い方はhelp.htmlという別ドキュメントに分離）。
+     左＝見出し（3つの版で共通の「サイドノート作成ツール」）＋説明文1行＋ボタン1つ
+     （使い方はhelp.htmlという別ドキュメントに分離）。
      右＝アプリのイメージ図（本文＋サイドノートの2カラムをブラウザ枠で再現）と、
      派生アプリ3枚（文書作成版／ウェブページ版［近日公開］／Markdown版）。
      ============================================================ -->
 <header class="hero">
   <div class="hero-inner">
     <div class="hero-left">
-      <span class="hero-badge">ブラウザ完結・サイドノートツール</span>
-      <h1 class="hero-title">ありそうで無かった<br>サイドノート作成ツール</h1>
-      <p class="hero-desc">文章やスクリーンショットの資料に、右側のサイドノートで注釈を付けていくツールです。処理はすべてブラウザ内で完結し、内容はサーバーに送信されません。</p>
+      <h1 class="hero-title">サイドノート作成ツール</h1>
+      <p class="hero-desc">ありそうで無かった資料の横に注釈を置くツールです。</p>
       <a class="btn-outline hero-cta" href="help.html">使い方を読む</a>
     </div>
 
@@ -85,21 +85,24 @@
         </div>
       </div>
 
-      <!-- 派生アプリ3枚（文書作成版 / ウェブページ版[近日公開] / Markdown版）。
-           ウェブページ版は2026-09-10時点でまだ存在しないため、リンク無効のまま「近日公開」を表示する。 -->
+      <!-- 派生アプリ3枚（書面レイアウト版 / ウェブ用Markdown作成版[近日公開] / Markdown読み込み版）。
+           ウェブ用Markdown作成版は2026-09-10時点でまだ存在しないため、リンク無効のまま「近日公開」を表示する。 -->
       <div class="related-row-label">派生のツールもあります</div>
       <div class="related-row">
         <a class="related-card" href="https://sidenote-pdf-doc.pages.dev/" target="_blank" rel="noopener">
-          <div class="related-card-name">文書作成版<svg class="related-card-arrow" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.146 3.146a.5.5 0 0 1 .708 0l4.5 4.5a.5.5 0 0 1 0 .708l-4.5 4.5a.5.5 0 0 1-.708-.708L11.793 8 8.146 4.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 2 8z"/></svg></div>
-          <div class="related-card-desc">文書を組み立てながら検討メモも残せる版</div>
+          <div class="related-card-name">書面レイアウト版<svg class="related-card-arrow" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.146 3.146a.5.5 0 0 1 .708 0l4.5 4.5a.5.5 0 0 1 0 .708l-4.5 4.5a.5.5 0 0 1-.708-.708L11.793 8 8.146 4.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 2 8z"/></svg></div>
+          <div class="related-card-desc">インデント・ぶら下げ・下線・傍点で体裁を整える版</div>
         </a>
+        <!-- まだ存在しないアプリ。他の2枚が持つ矢印（＝押せば飛べる印）を持たせず、
+             代わりに「近日公開」バッジを説明の下へ置く（名前の行に入れると名前が折り返すため）。 -->
         <div class="related-card related-card-soon" aria-disabled="true">
-          <div class="related-card-name">ウェブページ版 <span class="soon-badge">近日公開</span></div>
-          <div class="related-card-desc">作成したサイドノートをそのままウェブページとして公開できる版</div>
+          <div class="related-card-name">ウェブ用Markdown作成版</div>
+          <div class="related-card-desc">MkDocs・Docsify用のMarkdownを書き出す版</div>
+          <span class="soon-badge">近日公開</span>
         </div>
         <a class="related-card" href="https://sidenote-pdf-md.pages.dev/" target="_blank" rel="noopener">
-          <div class="related-card-name">Markdown版<svg class="related-card-arrow" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.146 3.146a.5.5 0 0 1 .708 0l4.5 4.5a.5.5 0 0 1 0 .708l-4.5 4.5a.5.5 0 0 1-.708-.708L11.793 8 8.146 4.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 2 8z"/></svg></div>
-          <div class="related-card-desc">AIチャットのMarkdown出力に注釈を付けられる版</div>
+          <div class="related-card-name">Markdown読み込み版<svg class="related-card-arrow" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8.146 3.146a.5.5 0 0 1 .708 0l4.5 4.5a.5.5 0 0 1 0 .708l-4.5 4.5a.5.5 0 0 1-.708-.708L11.793 8 8.146 4.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10A.5.5 0 0 1 2 8z"/></svg></div>
+          <div class="related-card-desc">AIが書いたMarkdownを読み込んで注釈を付ける版</div>
         </a>
       </div>
     </div>

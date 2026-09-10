@@ -23,6 +23,12 @@
 
 .help-section-title { font-size: 12px; font-weight: 700; color: var(--tx-muted-2); margin: 0 0 12px; }
 
+/* 3つの版で1枚を共有するので、頭に行き先を出す（罫線ではなく余白で区切る）。 */
+.help-toc { list-style: none; margin: 0 0 36px; padding: 0; font-size: 13.5px; line-height: 2; }
+.help-toc a { color: var(--tx-text); }
+/* 版別セクションの前置き（どのアプリの話かを1行で示す）。 */
+.help-note { font-size: 13.5px; line-height: 1.8; color: var(--tx-muted); margin: 0 0 14px; }
+
 @media (max-width: 600px) {
   .help-page { padding: 28px 20px 60px; }
 }
