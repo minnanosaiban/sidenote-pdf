@@ -3,7 +3,9 @@
    グレースケールのみ（アクセントカラー無し）。本アプリの黒/青/赤の3色は
    注釈の種別を表す機能色なので維持し、装飾用の赤（ホバー・フォーカス枠）だけ無彩色に寄せる。 */
 :root {
-  --tx-text: #0a0a0a;
+  /* 2026-09-12、目の疲れ対策で白地(#fff)から薄いクールグレーへ変更。テキストも純黒から少し
+     和らげた（黒/青/赤の注釈機能色は別途ハードコードされておりここには連動しない）。 */
+  --tx-text: #1e2126;
   --tx-muted: #4d4d4d;
   --tx-muted-2: #71717a;
   --tx-border: #e5e5e5;
@@ -16,7 +18,7 @@
   --tx-shadow-2xl: 0 25px 50px -12px rgba(0,0,0,.25);
 }
 body {
-  margin: 0; color: var(--tx-text); background: #fff; padding: 28px 40px 100px;
+  margin: 0; color: var(--tx-text); background: #f4f5f7; padding: 28px 40px 100px;
   font-family: "Source Sans Pro", system-ui, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
   overflow-x: hidden;   /* .heroの100vwフルブリード対策（スクロールバー分のはみ出しを隠す） */
 }
@@ -31,7 +33,7 @@ body {
    中身は.hero-innerで揃える。 */
 .hero {
   width: 100vw; position: relative; left: 50%; margin: -28px 0 0 -50vw;
-  padding: 72px 40px 48px; background: #fafafa;
+  padding: 72px 40px 48px; background: #eef0f3;
   border-bottom: 1px solid var(--tx-border);
 }
 .hero-inner {
@@ -168,6 +170,8 @@ body {
 }
 .title-row input[type="text"]:focus { outline: none; border-color: var(--tx-text); box-shadow: 0 0 0 3px rgba(10,10,10,.08); }
 #saveStatus { max-width: 900px; margin: 8px auto 0; font-size: 12.5px; color: #666; min-height: 1.4em; }
+
+.app-footer { max-width: 900px; margin: 48px auto 0; text-align: center; font-size: 11px; color: var(--tx-muted-2); }
 
 /* ── 「設定」「各種ボタンのヘルプ」のドロップダウンパネル ──
    note-popoverと同じ考え方（枠線ではなく影だけで境界を示す）を踏襲。 */
@@ -466,10 +470,13 @@ body {
    window.print()を呼ばなくても実機の描画（floatの挙動含む）を確認できる。実際の印刷時も
    savePdfBtn.onclick内で同じクラスを付けてからwindow.print()を呼ぶため、プレビューと本番の
    見た目は完全に一致する（ルールを2重管理する必要がない）。 */
-body.print-active { padding: 0; margin: 0; }
+/* bodyの背景色（2026-09-12〜薄いクールグレー）が印刷に紛れ込まないよう、印刷時は常に白へ戻す
+   （通常はブラウザが背景色を印刷しない既定動作に守られるが、「背景のグラフィック」が有効な環境でも
+   確実に白地になるよう明示しておく）。 */
+body.print-active { padding: 0; margin: 0; background: #fff; }
 body.print-active .hero, body.print-active .toolbar-sticky, body.print-active .title-row,
 body.print-active #saveStatus, body.print-active .doc-wrap, body.print-active .note-popover,
-body.print-active .dropdown-panel { display: none !important; }
+body.print-active .dropdown-panel, body.print-active .app-footer { display: none !important; }
 body.print-active #printDoc {
   display: block !important;
   font-family: "Source Sans Pro", system-ui, "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
