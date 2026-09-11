@@ -370,6 +370,10 @@ function buildPrintDoc() {
     }
   });
 
+  // サイドノートが1件も無い文書は、右側のサイドノート欄（幅48mm）を使わないぶん本文を広く・大きく
+  // 組む（本文12pt・1行37字＝画面表示と同じ文字数。CSS側のbody.print-active.no-sidenoteが対応）。
+  document.body.classList.toggle("no-sidenote", notesByAnchor.size === 0);
+
   // 直後にwindow.print()（またはプレビュー用のクラス切り替え）が呼ばれる前に、大量のfloat要素を
   // 書き換えた後のレイアウトを強制的に確定させる（読み取りアクセスでリフローを強制する定番の手法）。
   // これを入れずに直後printすると、印刷専用のレンダリングパスがレイアウト未確定のまま走り、
@@ -1563,6 +1567,8 @@ function addPdfRectNote(pageEl, rect, text, color) {
 // ページ画像は既に画面用に描画済みのcanvasをそのまま書き出す（再描画しない）。
 function buildPrintDocPdf() {
   printDocEl.innerHTML = "";
+  // no-sidenote（本文モード専用の広幅レイアウト）がテキストモードから引き継がれて残らないようにする。
+  document.body.classList.remove("no-sidenote");
 
   const title = projectTitle();
   if (title) {

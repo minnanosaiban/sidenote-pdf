@@ -150,7 +150,7 @@ body {
 
 /* 文章が長くなるとインデント等のボタンに手が届かなくなるため、ツールバーを画面上部に固定する。 */
 .toolbar-sticky {
-  position: sticky; top: 8px; z-index: 20; background: #fff;
+  position: sticky; top: 8px; z-index: 20; background: #f4f5f7;
   max-width: 900px; margin: 0 auto 16px; padding-top: 48px;
 }
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
@@ -171,7 +171,7 @@ body {
 .title-row input[type="text"]:focus { outline: none; border-color: var(--tx-text); box-shadow: 0 0 0 3px rgba(10,10,10,.08); }
 #saveStatus { max-width: 900px; margin: 8px auto 0; font-size: 12.5px; color: #666; min-height: 1.4em; }
 
-.app-footer { max-width: 900px; margin: 48px auto 0; text-align: center; font-size: 11px; color: var(--tx-muted-2); }
+.app-footer { max-width: 900px; margin: 48px auto 0; text-align: left; font-size: 11px; color: var(--tx-muted-2); }
 
 /* ── 「設定」「各種ボタンのヘルプ」のドロップダウンパネル ──
    note-popoverと同じ考え方（枠線ではなく影だけで境界を示す）を踏襲。 */
@@ -527,6 +527,13 @@ body.print-active .print-aside {
    段落の外（#printDocの直接の子）として置かれる場合（画像への注釈）は今まで通りfloat:rightのみ。 */
 body.print-active .print-para .print-aside { margin-right: -48mm; }
 body.print-active #printDoc sup { font-size: .75em; color: #666; }
+
+/* サイドノートが1件も無い文書（buildPrintDoc()がbodyに付ける.no-sidenoteクラス）は、右の48mm欄を
+   使わないぶん本文を大きく・広く組む（12pt・1行37字＝画面表示と同じ文字数）。
+   156.6mm = 37字 × 12pt（CJKフォントは全角1文字≒1emという画面側と同じ近似）。 */
+body.print-active.no-sidenote #printDoc { font-size: 12pt; }
+body.print-active.no-sidenote .print-para { width: 156.6mm; }
+body.print-active.no-sidenote .print-img { width: 156.6mm; max-width: 156.6mm; }
 
 /* ── PDFモードの印刷版面 ──
    本文モードは「段落の右の余白へfloatで逃がす」方式だが、PDFページは1ページの中に複数の注釈が
