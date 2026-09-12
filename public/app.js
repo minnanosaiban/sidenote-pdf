@@ -56,6 +56,12 @@ let pdfAnchors = [];
 // 引用された原文自体はDOM（.note-anchorのspan）がそのまま保持するのでここには持たない。
 const notesByAnchor = new Map();
 let pendingTarget = null;             // { type: "text", range } | { type: "image", paraEl } | { type: "reply", anchorId }
+// 直前にCtrl+C/Ctrl+Xでコピーした内容の記憶（同じセッション内での貼り付け判定にだけ使う）。
+// 段落をまるごとコピーした場合、貼り付け側でそれと分かるようにするための目印。
+// クリップボードの中身自体は改変しない（他アプリへの貼り付けは通常通りプレーンテキストのまま）ので、
+// 別タブ・別セッションや外部からの貼り付けでは単に一致せず、これまで通りの改行の有無での判定に戻る。
+let lastCopiedText = null;
+let lastCopiedWasWholeParagraph = false;
 let lastUsedColor = "black";          // 直前に選んだ色をポップオーバーの初期選択にする
 const AUTHOR_COLOR_HEX = { black: "#31333f", blue: "#1a73e8", red: "#d33" };
 // 黒・青は「誰か」を表す名前を「設定」で自由に変えられる（例：黒=Tomo、青=Toko）。赤は「重要」固定。
@@ -114,7 +120,18 @@ doc.addEventListener("paste", (e) => {
   }
   e.preventDefault();
   const text = cd.getData("text/plain");
-  if (text) document.execCommand("insertHTML", false, linesToParaHtml(text));
+  if (!text) return;
+  // 改行を含まない一行だけの貼り付けは、単語や一文をコピペしたいだけの操作とみなし、
+  // 新しい段落を作る（linesToParaHtml→insertHTML）のではなく、今のカーソル位置にそのまま
+  // インラインで挿し込む（普通のテキストエディタと同じ挙動。改行を含む場合は従来通り段落として扱う）。
+  // ただし、直前にこのアプリ内で「段落まるごと」コピー／切り取りしたテキストと一致する場合は
+  // 改行が無くても段落として扱う（＝新しい段落として貼り付け、文中にインラインで混ぜない）。
+  const isCopiedWholeParagraph = lastCopiedWasWholeParagraph && text === lastCopiedText;
+  if (!isCopiedWholeParagraph && !/\r|\n/.test(text)) {
+    document.execCommand("insertText", false, text);
+    return;
+  }
+  document.execCommand("insertHTML", false, linesToParaHtml(text));
 });
 
 // 文書は常に最低1つの.para（空でも）を持つ状態にしておく。空の#docに直接入力し始めた場合でも
@@ -529,7 +546,10 @@ function handleSelection() {
   const startPara = getNodePara(range.startContainer);
   const endPara = getNodePara(range.endContainer);
   if (!startPara || !endPara || startPara !== endPara) return;
-  pendingTarget = { type: "text", range: range.cloneRange() };
+  // 段落の先頭〜末尾までまるごと選択したか（コピー時、貼り付け側が「段落として扱うか／
+  // 文中にインラインで挿し込むか」を判定するための目印に使う。setPendingHighlight等では未使用）。
+  const isWholeParagraph = range.toString() === startPara.textContent;
+  pendingTarget = { type: "text", range: range.cloneRange(), isWholeParagraph };
   openPopover(range.getBoundingClientRect());
 }
 
@@ -978,6 +998,8 @@ popoverInput.addEventListener("keydown", (e) => {
 
   if (mod && (e.key === "x" || e.key === "X")) {
     e.preventDefault();
+    lastCopiedText = pendingTarget.range.toString();
+    lastCopiedWasWholeParagraph = pendingTarget.isWholeParagraph;
     runDocCommandOnPendingRange("cut");
     closePopover();
   } else if (e.key === "Delete" || e.key === "Backspace") {
@@ -992,6 +1014,8 @@ popoverInput.addEventListener("keydown", (e) => {
 function copyPendingTargetText() {
   if (pendingTarget.type === "text") {
     runDocCommandOnPendingRange("copy");
+    lastCopiedText = pendingTarget.range.toString();
+    lastCopiedWasWholeParagraph = pendingTarget.isWholeParagraph;
     popoverInput.focus({ preventScroll: true });   // ノートを書き続けられるよう、コピー後はinputへフォーカスを戻す
   } else if (pendingTarget.type === "pdftext") {
     if (pendingTarget.quote) navigator.clipboard.writeText(pendingTarget.quote).catch(() => {});
