@@ -90,11 +90,12 @@ body {
 .related-card {
   display: block; border: 1px solid var(--tx-border); border-radius: 10px; padding: 12px 14px;
   background: #fff; text-decoration: none; color: inherit;
-  transition: box-shadow .15s, border-color .15s, transform .15s;
+  transition: background .15s;
 }
-/* リンクだと分かるよう、名前の右に矢印を添える（→はhoverで右へ少し動く）。影も付けて
-   カード自体が持ち上がるようにし、静的な区切り枠と見分けやすくする。 */
-.related-card:hover { box-shadow: var(--tx-shadow-md); border-color: #d4d4d4; transform: translateY(-1px); }
+/* リンクだと分かるよう、名前の右に矢印を添える（→はhoverで右へ少し動く）。
+   2026-09-12、罫線・影で囲む見せ方をやめ、ボタン（.btn-outline:hover）と同じ背景の
+   ティントだけに統一（囲まれる感じが好みでないという指摘を受けて変更）。 */
+.related-card:hover { background: #f4f4f5; }
 .related-card:hover .related-card-arrow { transform: translateX(2px); color: var(--tx-text); }
 /* 派生アプリ名は最長で「ウェブ用Markdown作成版」。カード幅（3列で1枚167px）に1行で収める
    ため12pxにしている（折り返すとカードごとに高さが揃わず、行の見た目が崩れる）。 */
