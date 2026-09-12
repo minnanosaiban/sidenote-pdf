@@ -960,10 +960,54 @@ function wrapSelection(textarea, before, after) {
 }
 popoverInput.addEventListener("keydown", (e) => {
   const mod = e.ctrlKey || e.metaKey;
-  if (!mod) return;
-  if (e.key === "b" || e.key === "B") { e.preventDefault(); wrapSelection(popoverInput, "**", "**"); }
-  else if (e.key === "u" || e.key === "U") { e.preventDefault(); wrapSelection(popoverInput, "<u>", "</u>"); }
+  if (mod && (e.key === "b" || e.key === "B")) { e.preventDefault(); wrapSelection(popoverInput, "**", "**"); return; }
+  if (mod && (e.key === "u" || e.key === "U")) { e.preventDefault(); wrapSelection(popoverInput, "<u>", "</u>"); return; }
+
+  // ノート入力欄が空のままCtrl+C／Ctrl+X／Delete・Backspaceが来た場合は、ノートを書くつもりではなく
+  // 選んだ元のテキストそのものへの操作（コピー・切り取り・削除）だと見なして横取りする。
+  // フォーカスがポップオーバーのinputへ移った直後はCtrl+C等がこのinput自身（＝空文字）に働いてしまい、
+  // 選択した本文テキストをコピー・削除できなくなってしまうため。
+  if (popoverInput.value !== "" || !pendingTarget) return;
+
+  if (mod && (e.key === "c" || e.key === "C")) {
+    e.preventDefault();
+    copyPendingTargetText();
+    return;
+  }
+  if (pendingTarget.type !== "text") return;   // 切り取り・削除は本文テキスト選択のみ対応（PDFテキストは読み取り専用のため）
+
+  if (mod && (e.key === "x" || e.key === "X")) {
+    e.preventDefault();
+    runDocCommandOnPendingRange("cut");
+    closePopover();
+  } else if (e.key === "Delete" || e.key === "Backspace") {
+    e.preventDefault();
+    runDocCommandOnPendingRange("delete");
+    closePopover();
+  }
 });
+
+// ポップオーバー表示中のCtrl+C：保存済みのpendingTarget（選択時点でcloneした元のテキスト）をコピーする。
+// "text"（本文）はexecCommand("copy")経由、"pdftext"（PDFテキストレイヤー）は引用文字列を直接書き込む。
+function copyPendingTargetText() {
+  if (pendingTarget.type === "text") {
+    runDocCommandOnPendingRange("copy");
+    popoverInput.focus();   // ノートを書き続けられるよう、コピー後はinputへフォーカスを戻す
+  } else if (pendingTarget.type === "pdftext") {
+    if (pendingTarget.quote) navigator.clipboard.writeText(pendingTarget.quote).catch(() => {});
+  }
+}
+
+// #doc側のフォーカスと選択範囲を、選択時点で保存したRangeへ戻した上でcopy/cut/deleteを実行する。
+// execCommand経由にすることで、#docのinputイベント（renumberAndLayout・自動保存）と
+// ブラウザのネイティブundo（Ctrl+Z）の対象に自然に乗る（段落挿入と同じ考え方）。
+function runDocCommandOnPendingRange(command) {
+  doc.focus();
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(pendingTarget.range);
+  document.execCommand(command);
+}
 
 doc.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); insertNewParagraph(); return; }
