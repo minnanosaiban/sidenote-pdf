@@ -1,15 +1,15 @@
 /* help.html（使い方ページ）専用のレイアウト。
    トークン（色・角丸・影）や.btn-outline/.help-gifはstyle.cssを先に読み込んで共有する
    （このファイルはページ固有のレイアウトだけを持つ）。 */
-.help-page { max-width: 640px; margin: 0 auto; padding: 40px 40px 80px; }
+.help-page { max-width: 680px; margin: 0 auto; padding: 40px 40px 80px; }
 .help-back { display: inline-flex; margin-bottom: 28px; }
 .help-page h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; color: var(--tx-text); }
-.help-page > .help-lead { font-size: 14.5px; color: var(--tx-muted); margin: 0 0 32px; line-height: 1.8; }
+.help-page > .help-lead { font-size: 15px; color: var(--tx-muted); margin: 0 0 32px; line-height: 1.85; }
 
 .help-steps { list-style: none; margin: 0 0 36px; padding: 0; counter-reset: help-step; }
 .help-steps > li {
   counter-increment: help-step; position: relative; padding-left: 34px; margin-bottom: 28px;
-  font-size: 14.5px; line-height: 1.8; color: var(--tx-text);
+  font-size: 15px; line-height: 1.85; color: var(--tx-text);
 }
 .help-steps > li:last-child { margin-bottom: 0; }
 .help-steps > li::before {
@@ -18,16 +18,20 @@
   display: flex; align-items: center; justify-content: center;
 }
 
-.help-list { margin: 0 0 36px; padding-left: 20px; font-size: 14px; line-height: 1.9; color: var(--tx-text); }
-.help-list li { margin-bottom: 6px; }
+/* 長文の箇条書きが並ぶと文字の密度だけでは区切りが弱いので、1項目＝1枚のカードにして
+   区切りを余白でなく面で見せる（2026-09-12、読みにくさの指摘を受けて変更）。 */
+.help-list { list-style: none; margin: 0 0 36px; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; line-height: 1.85; color: var(--tx-text); }
+.help-list li { margin: 0; background: #fff; border: 1px solid var(--tx-border); border-radius: 10px; padding: 14px 18px; }
 
-.help-section-title { font-size: 12px; font-weight: 700; color: var(--tx-muted-2); margin: 0 0 12px; }
+/* 版別セクションの見出し。以前は12px・グレーで弱く、箇条書きの文字量に埋もれて
+   セクションの境目が分かりにくかったため、本文より大きく・地の色にして見出しらしくした。 */
+.help-section-title { font-size: 17px; font-weight: 700; color: var(--tx-text); margin: 0 0 16px; }
 
 /* 3つの版で1枚を共有するので、頭に行き先を出す（罫線ではなく余白で区切る）。 */
-.help-toc { list-style: none; margin: 0 0 36px; padding: 0; font-size: 13.5px; line-height: 2; }
+.help-toc { list-style: none; margin: 0 0 36px; padding: 0; font-size: 14px; line-height: 2; }
 .help-toc a { color: var(--tx-text); }
 /* 版別セクションの前置き（どのアプリの話かを1行で示す）。 */
-.help-note { font-size: 13.5px; line-height: 1.8; color: var(--tx-muted); margin: 0 0 14px; }
+.help-note { font-size: 14px; line-height: 1.8; color: var(--tx-muted); margin: 0 0 16px; }
 
 @media (max-width: 600px) {
   .help-page { padding: 28px 20px 60px; }

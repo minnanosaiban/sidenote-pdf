@@ -253,11 +253,14 @@ body {
    同じ理由・同じ対策。pdfモードでdocStackEl.hidden=trueにしてもこれが無いと本文の見本が透けて残る）。 */
 .doc-stack[hidden] { display: none; }
 
-#doc {
+/* .doc-stack配下に限定：help.htmlのid="doc"（版別セクションへのアンカー先。他アプリの
+   「使い方を読む」からhelp.html#docでリンクされているためid自体は変更しない）と
+   衝突していた（本文の枠がそのまま巨大な空箱として表示される不具合、2026-09-12修正）。 */
+.doc-stack #doc {
   border: 1px solid var(--tx-border); border-radius: var(--tx-radius-card); box-shadow: var(--tx-shadow-sm); padding: 24px;
   font-size: 15px; line-height: 1.9; min-height: 300px;
 }
-#doc:focus { outline: none; border-color: var(--tx-text); }
+.doc-stack #doc:focus { outline: none; border-color: var(--tx-text); }
 /* 本文が空の間だけ、それらしい例文をグレーで重ねて見せる（#docのJS側で.emptyを付け外しする）。
    クリックは下の#docへ素通しし、実際に何か入力・貼り付けした瞬間にJS側で消える。 */
 #docSample {
