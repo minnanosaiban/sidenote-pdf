@@ -992,7 +992,7 @@ popoverInput.addEventListener("keydown", (e) => {
 function copyPendingTargetText() {
   if (pendingTarget.type === "text") {
     runDocCommandOnPendingRange("copy");
-    popoverInput.focus();   // ノートを書き続けられるよう、コピー後はinputへフォーカスを戻す
+    popoverInput.focus({ preventScroll: true });   // ノートを書き続けられるよう、コピー後はinputへフォーカスを戻す
   } else if (pendingTarget.type === "pdftext") {
     if (pendingTarget.quote) navigator.clipboard.writeText(pendingTarget.quote).catch(() => {});
   }
@@ -1001,8 +1001,11 @@ function copyPendingTargetText() {
 // #doc側のフォーカスと選択範囲を、選択時点で保存したRangeへ戻した上でcopy/cut/deleteを実行する。
 // execCommand経由にすることで、#docのinputイベント（renumberAndLayout・自動保存）と
 // ブラウザのネイティブundo（Ctrl+Z）の対象に自然に乗る（段落挿入と同じ考え方）。
+// {preventScroll:true}が無いと、長い文書の下の方で操作した時にfocus()の既定動作で
+// #doc（本文全体を包む1つの巨大なcontenteditable）の先頭が画面内に来るようスクロールされてしまい、
+// 文書の先頭へ戻ったように見えてしまう。
 function runDocCommandOnPendingRange(command) {
-  doc.focus();
+  doc.focus({ preventScroll: true });
   const sel = window.getSelection();
   sel.removeAllRanges();
   sel.addRange(pendingTarget.range);
