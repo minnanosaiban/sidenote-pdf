@@ -149,6 +149,9 @@ body {
   .hero { padding-left: 20px; padding-right: 20px; }
 }
 
+/* ツールバー直上の一行ヒント。.toolbar-stickyと同じ900px中央寄せ（2026-09-13追加）。 */
+.shortcut-hint { max-width: 900px; margin: 24px auto 0; padding: 0 0 4px; font-size: 12.5px; color: var(--tx-muted-2); }
+
 /* 文章が長くなるとインデント等のボタンに手が届かなくなるため、ツールバーを画面上部に固定する。
    「設定」の「メニューを画面上部に固定する」をオフにすると.toolbar-sticky--staticが付き、
    固定をやめて他の要素と同じく普通に流れる（position以外はそのまま。sidenote-pdf-mdと同じ仕組み）。 */
@@ -233,6 +236,19 @@ body {
   opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none;
 }
 .help-icon:hover + .help-tip, .help-icon:focus + .help-tip { opacity: 1; visibility: visible; }
+
+/* ツールバーのボタンはtitle属性（ブラウザ標準の吹き出し＝枠線と影で囲まれ、見た目を制御できない）
+   をやめ、data-tip属性＋この自前ツールチップに置き換える。見た目は.help-tipと同じく
+   枠線も影も付けず、濃い背景色のコントラストだけで浮かせる（2026-09-12、囲まれるのが
+   好みでないという指摘を受けて変更）。 */
+[data-tip] { position: relative; }
+[data-tip]::after {
+  content: attr(data-tip); position: absolute; z-index: 60; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%); width: max-content; max-width: 240px; text-align: left;
+  background: #31333f; color: #fff; font-size: 12px; line-height: 1.6; padding: 8px 10px; border-radius: 8px;
+  opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none;
+}
+[data-tip]:hover::after, [data-tip]:focus-visible::after { opacity: 1; visibility: visible; }
 
 /* GIFはブラウザ操作の実演（音声なし）。カードのような枠を付けて、文章と地続きにならないようにする。
    help.html（使い方ページ）で使う。 */
@@ -337,7 +353,9 @@ body {
 .sidenote-num { color: #6b6f76; font-weight: 700; margin-right: 4px; }   /* 番号は無彩色に統一（赤は「重要」専用の色にするため） */
 .sidenote-entry { display: flex; align-items: flex-start; gap: 4px; margin-top: 2px; }
 .sidenote-entry:first-of-type { margin-top: 0; }
-.sidenote-text { white-space: pre-line; flex: 1 1 auto; }   /* ノート本文の改行(\n)を保持する（太字の見出し行→本文、のような2行構成のため） */
+/* pre-lineだと改行(\n)を連続させても1つに畳まれてしまい、Enterを2回押しても
+   空行が入らなかった（2026-09-13指摘）。pre-wrapなら連続した改行もそのまま保持しつつ折り返す。 */
+.sidenote-text { white-space: pre-wrap; flex: 1 1 auto; }   /* ノート本文の改行(\n)を保持する（太字の見出し行→本文、のような2行構成のため） */
 .sidenote-text strong { color: inherit; }
 .sidenote-rm {
   display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none;
@@ -481,7 +499,7 @@ body {
    （通常はブラウザが背景色を印刷しない既定動作に守られるが、「背景のグラフィック」が有効な環境でも
    確実に白地になるよう明示しておく）。 */
 body.print-active { padding: 0; margin: 0; background: #fff; }
-body.print-active .hero, body.print-active .toolbar-sticky, body.print-active .title-row,
+body.print-active .hero, body.print-active .shortcut-hint, body.print-active .toolbar-sticky, body.print-active .title-row,
 body.print-active #saveStatus, body.print-active .doc-wrap, body.print-active .note-popover,
 body.print-active .dropdown-panel, body.print-active .app-footer { display: none !important; }
 body.print-active #printDoc {

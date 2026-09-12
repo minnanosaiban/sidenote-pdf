@@ -678,10 +678,20 @@ function closePopover() {
   popoverEl.hidden = true;
 }
 
-document.getElementById("notePopoverCancel").onclick = () => {
+function cancelPopover() {
   closePopover();
   window.getSelection()?.removeAllRanges();
-};
+}
+document.getElementById("notePopoverCancel").onclick = cancelPopover;
+
+// Escapeでポップオーバーを閉じる（「キャンセル」と同じ動作）。フォーカスが入力欄・色ボタンの
+// どちらにあっても効くよう、popoverInput個別ではなくdocument全体で「開いているかどうか」だけ見て拾う。
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !popoverEl.hidden) {
+    e.preventDefault();
+    cancelPopover();
+  }
+});
 
 document.getElementById("notePopoverAdd").onclick = () => {
   const text = popoverInput.value.trim();
