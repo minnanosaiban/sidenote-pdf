@@ -148,11 +148,14 @@ body {
   .hero { padding-left: 20px; padding-right: 20px; }
 }
 
-/* 文章が長くなるとインデント等のボタンに手が届かなくなるため、ツールバーを画面上部に固定する。 */
+/* 文章が長くなるとインデント等のボタンに手が届かなくなるため、ツールバーを画面上部に固定する。
+   「設定」の「メニューを画面上部に固定する」をオフにすると.toolbar-sticky--staticが付き、
+   固定をやめて他の要素と同じく普通に流れる（position以外はそのまま。sidenote-pdf-mdと同じ仕組み）。 */
 .toolbar-sticky {
   position: sticky; top: 8px; z-index: 20; background: #f4f5f7;
   max-width: 900px; margin: 0 auto 16px; padding-top: 48px;
 }
+.toolbar-sticky--static { position: static; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
 /* ボタンの見た目は.btn-outline/.btn-primaryへ統一。このブロックはレイアウトのみを担当する。 */
 .icon { width: 1.05em; height: 1.05em; flex: none; }   /* Bootstrap Icons（MITライセンス）のSVGを絵文字の代わりに使う */

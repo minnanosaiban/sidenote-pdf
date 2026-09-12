@@ -622,6 +622,29 @@ showNamesToggle.onchange = () => {
   renumberAndLayout();
 };
 
+// メニュー（ツールバー）を画面上部に固定するかどうか。この端末の個人設定としてlocalStorageへ
+// （sidenote-pdf-mdと同じ仕組み）。既定はtrue＝固定する（これまでの.toolbar-stickyの挙動のまま）。
+const stickyToolbarToggle = document.getElementById("stickyToolbarToggle");
+const toolbarStickyEl = document.querySelector(".toolbar-sticky");
+const STICKY_TOOLBAR_KEY = "sidenote-pdf-sticky-toolbar-v1";
+function applyStickyToolbar(sticky) {
+  toolbarStickyEl.classList.toggle("toolbar-sticky--static", !sticky);
+}
+let stickyToolbar = true;
+(function loadStickyToolbarDefault() {
+  try {
+    const raw = localStorage.getItem(STICKY_TOOLBAR_KEY);
+    if (raw !== null) stickyToolbar = raw === "1";
+  } catch (err) { /* noop */ }
+})();
+stickyToolbarToggle.checked = stickyToolbar;
+applyStickyToolbar(stickyToolbar);
+stickyToolbarToggle.onchange = () => {
+  stickyToolbar = stickyToolbarToggle.checked;
+  applyStickyToolbar(stickyToolbar);
+  try { localStorage.setItem(STICKY_TOOLBAR_KEY, stickyToolbar ? "1" : "0"); } catch (err) { /* noop */ }
+};
+
 // 「設定」はボタン直下に開く小さい吹き出し（同じボタンをもう一度押す、他方を開く、閉じるボタンで閉じる）。
 function toggleDropdownPanel(panelEl, btnEl) {
   const opening = panelEl.hidden;
