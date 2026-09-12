@@ -295,7 +295,9 @@ function buildPrintNode(node) {
     }
     return frag;
   }
-  const wrapTag = node.tagName === "STRONG" ? "strong" : node.tagName === "U" ? "u" : null;
+  // Ctrl+Bはブラウザ標準のexecCommand("bold")が<strong>ではなく<b>を作るため、
+  // 印刷側もbを認識しないと本文の太字がPDFで消えてしまう（2026-09-13、本文へのCtrl+B対応で追加）。
+  const wrapTag = (node.tagName === "STRONG" || node.tagName === "B") ? "strong" : node.tagName === "U" ? "u" : null;
   const container = wrapTag ? document.createElement(wrapTag) : document.createDocumentFragment();
   Array.from(node.childNodes).forEach((child) => container.appendChild(buildPrintNode(child)));
   return container;
@@ -1083,6 +1085,41 @@ function insertNewParagraph() {
   const range = sel.getRangeAt(0);
   if (!doc.contains(range.commonAncestorContainer)) return;
   if (rangeOverlapsLockedAnchor(range)) return;
+
+  // execCommand("insertHTML")に段落の分割を任せると、
+  //   ・段落が既に空の状態でもう一度Enterを押しても2つ目の空段落が生まれない
+  //     （2026-09-13指摘：Enterを2回続けても空行が増えない）
+  //   ・段落の途中にカーソルを置いてEnterで割ると「前半／余分な空段落／後半」の3つになる
+  //     （同日、上の修正時に発覚した別バグ）
+  // という不具合があったため、この2パターン（段落が空、またはカーソルより後ろに何か残っている）
+  // だけは自前のRange操作で確実に2つに割る（Ctrl+Zの対象にはならない＝画像挿入と同じ既知の
+  // 制約として許容する）。カーソルが段落の末尾にあるだけの最も多い操作は、これまで通り
+  // execCommand経由でundoできるようにする。
+  const currentPara = getCurrentPara();
+  if (currentPara && range.collapsed) {
+    const tailRange = document.createRange();
+    tailRange.setStart(range.startContainer, range.startOffset);
+    if (currentPara.lastChild) tailRange.setEndAfter(currentPara.lastChild);
+    else tailRange.setEnd(currentPara, 0);
+    const isEmpty = currentPara.textContent === "";
+    const hasTail = tailRange.toString().length > 0;
+    if (isEmpty || hasTail) {
+      const afterFragment = tailRange.extractContents();
+      const newPara = document.createElement("div");
+      newPara.className = "para";
+      newPara.appendChild(afterFragment);
+      if (!newPara.hasChildNodes()) newPara.innerHTML = "<br>";
+      if (!currentPara.hasChildNodes()) currentPara.innerHTML = "<br>";
+      currentPara.after(newPara);
+      const r = document.createRange();
+      r.setStart(newPara, 0);
+      r.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(r);
+      doc.dispatchEvent(new Event("input"));
+      return;
+    }
+  }
 
   // 挿入した.paraを一時属性で目印してすぐ拾い、カーソルをその中（brの手前＝空行の先頭）に置く。
   document.execCommand("insertHTML", false, '<div class="para" data-new-para="1"><br></div>');

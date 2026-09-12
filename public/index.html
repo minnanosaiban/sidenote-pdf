@@ -27,7 +27,7 @@
 <meta name="twitter:description" content="文章やスクショにサイドノートを書き込んでPDFにできるツール">
 <meta name="twitter:image" content="https://sidenote-pdf.pages.dev/og-image-large.png">
 <!-- ?v=NUM はキャッシュ対策。style.css/app.jsを直す度に、直したファイルの番号だけ+1する。 -->
-<link rel="stylesheet" href="style.css?v=47">
+<link rel="stylesheet" href="style.css?v=48">
 </head>
 <body>
 
@@ -44,6 +44,16 @@
       <h1 class="hero-title">サイドノート作成ツール</h1>
       <p class="hero-desc">ありそうで無かった！<br>資料の横に注釈を置くツールです。</p>
       <a class="btn-outline hero-cta" href="help.html">使い方を読む</a>
+      <div class="hero-shortcuts">
+        <div class="hero-shortcuts-title">ショートカット対応</div>
+        <ul>
+          <li>Ctrl+S 保存</li>
+          <li>Esc キャンセル</li>
+          <li>Enter 改行</li>
+          <li>Ctrl+B 太字</li>
+          <li>Ctrl+U 下線</li>
+        </ul>
+      </div>
     </div>
 
     <div class="hero-right">
@@ -104,10 +114,6 @@
     </div>
   </div>
 </header>
-
-<!-- ショートカット一覧。ツールバー（.toolbar-sticky）には含めない＝スクロール中は追従させず、
-   最初に見えた時に読めれば足りる一度きりの案内として扱う（2026-09-13追加）。 -->
-<p class="shortcut-hint">ショートカット：Ctrl+S 保存／Esc キャンセル／Enterで改行（2回続けて空行）／Ctrl+B 太字・Ctrl+U 下線（ノート入力中）</p>
 
 <!-- ツールバーはbodyの直下に出す。position:stickyは自分の親の高さまでしか
      効かないため、長い文章をスクロールした時に親ごと画面外へ流れてツールバーが隠れてしまう
@@ -220,6 +226,6 @@
 <!-- 文字サイズ・1行文字数の目安（目立たせない豆知識程度の位置づけ）。 -->
 <footer class="app-footer">画面表示は本文15px・1行37字／PDF書き出しはサイドバーがあれば本文10.5pt・1行31字、無ければ本文12pt・1行37字が目安です（全角1文字≒1em換算）。</footer>
 
-<script src="app.js?v=43"></script>
+<script src="app.js?v=45"></script>
 </body>
 </html>

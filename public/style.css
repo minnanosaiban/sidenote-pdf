@@ -53,6 +53,12 @@ body {
    幅を18emに絞って2〜3行に落として塊として読ませる。 */
 .hero-desc { font-size: 22px; line-height: 1.7; color: var(--tx-muted); margin: 0 0 28px; max-width: 18em; }
 .hero-cta { display: inline-flex; }
+/* 「使い方を読む」の下に置くショートカット一覧（2026-09-13、ツールバー直上から移設）。
+   .related-row-labelと同じ「小さい太字ラベル＋淡色の中身」の見せ方に揃える。 */
+.hero-shortcuts { margin-top: 20px; }
+.hero-shortcuts-title { font-size: 12px; font-weight: 600; color: var(--tx-muted-2); margin-bottom: 6px; }
+.hero-shortcuts ul { list-style: none; margin: 0; padding: 0; font-size: 12.5px; line-height: 1.9; color: var(--tx-muted); }
+.hero-shortcuts li::before { content: "・"; }
 
 /* ── アプリのイメージ図（ブラウザ枠） ── */
 .browser-mock {
@@ -148,9 +154,6 @@ body {
   body { padding-left: 16px; padding-right: 16px; }
   .hero { padding-left: 20px; padding-right: 20px; }
 }
-
-/* ツールバー直上の一行ヒント。.toolbar-stickyと同じ900px中央寄せ（2026-09-13追加）。 */
-.shortcut-hint { max-width: 900px; margin: 24px auto 0; padding: 0 0 4px; font-size: 12.5px; color: var(--tx-muted-2); }
 
 /* 文章が長くなるとインデント等のボタンに手が届かなくなるため、ツールバーを画面上部に固定する。
    「設定」の「メニューを画面上部に固定する」をオフにすると.toolbar-sticky--staticが付き、
@@ -499,7 +502,7 @@ body {
    （通常はブラウザが背景色を印刷しない既定動作に守られるが、「背景のグラフィック」が有効な環境でも
    確実に白地になるよう明示しておく）。 */
 body.print-active { padding: 0; margin: 0; background: #fff; }
-body.print-active .hero, body.print-active .shortcut-hint, body.print-active .toolbar-sticky, body.print-active .title-row,
+body.print-active .hero, body.print-active .toolbar-sticky, body.print-active .title-row,
 body.print-active #saveStatus, body.print-active .doc-wrap, body.print-active .note-popover,
 body.print-active .dropdown-panel, body.print-active .app-footer { display: none !important; }
 body.print-active #printDoc {
